@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id                  String                     @id @default(uuid())
+  job_position_id          Int
+  employment_status_id     Int
+  department_id            Int
+  full_name                String
+  phone_number             String                     @db.VarChar(15)
+  job_position             JobPosition                @relation(fields: [job_position_id], references: [job_position_id])
+  employment_status        EmploymentStatus           @relation(fields: [employment_status_id], references: [employment_status_id])
+  department               Department                 @relation(fields: [department_id], references: [department_id])
+  Company                  Company                    @relation(fields: [companyCompany_id], references: [company_id])
+  companyCompany_id        Int
+  Answer                   Answer[]
+  Attendance_health_result Attendance_health_result[]
+
+  @@map("users")
+}
+
+model Admin {
+  admin_id             String           @id @default(uuid())
+  full_name            String
+  phone_number         String           @db.VarChar(15)
+  email                String
+  password             String
+  company_id           Int
+  job_position_id      Int
+  employment_status_id Int
+  department_id        Int
+  role_id              Int
+  job_position         JobPosition      @relation(fields: [job_position_id], references: [job_position_id])
+  employment_status    EmploymentStatus @relation(fields: [employment_status_id], references: [employment_status_id])
+  department           Department       @relation(fields: [department_id], references: [department_id])
+  company              Company          @relation(fields: [company_id], references: [company_id])
+  role                 Role             @relation(fields: [role_id], references: [role_id])
+
+  @@map("admins")
+}
+
+model Company {
+  company_id Int     @id @default(autoincrement())
+  name       String
+  users      User[]
+  admins     Admin[]
+
+  @@map("companies")
+}
+
+model JobPosition {
+  job_position_id Int     @id @default(autoincrement())
+  name            String
+  users           User[]
+  admins          Admin[]
+
+  @@map("job_positions")
+}
+
+model EmploymentStatus {
+  employment_status_id Int     @id @default(autoincrement())
+  name                 String
+  users                User[]
+  admins               Admin[]
+
+  @@map("employment_statuses")
+}
+
+model Department {
+  department_id Int     @id @default(autoincrement())
+  name          String
+  users         User[]
+  admins        Admin[]
+
+  @@map("departments")
+}
+
+model Role {
+  role_id Int     @id @default(autoincrement())
+  name    String
+  admins  Admin[]
+
+  @@map("roles")
+}
+
+model Question {
+  question_id Int      @id @default(autoincrement())
+  question    String
+  answers     Answer[]
+
+  @@map("question")
+}
+
+model Answer {
+  answer_id   Int      @id @default(autoincrement())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [user_id])
+  answer      Int
+  question_id Int
+  question    Question @relation(fields: [question_id], references: [question_id])
+
+  @@map("answers")
+}
+
+model Attendance_health_result {
+  attendance_health_result_id Int    @id @default(autoincrement())
+  user_id                     String
+  user                        User   @relation(fields: [user_id], references: [user_id])
+  result                      Result
+  recomendation               String
+
+  @@map("attendance_health_results")
+}
+
+enum Result {
+  FIT
+  FIT_FOLLOW_UP
+  UNFIT
+}

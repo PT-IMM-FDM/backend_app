@@ -3,15 +3,15 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import cron from "node-cron"
+import cron from "node-cron";
 import { ErrorMiddleware } from "./middlewares";
 
 dotenv.config();
 const app: Express = express();
 
-cron.schedule("0 0 * * *", async() => {
+cron.schedule("0 0 * * *", async () => {
   // await UserFormMiddleware.dailyCheckExpiredPremiumPackage()
-})
+});
 
 app.use(cors());
 app.use(express.json());

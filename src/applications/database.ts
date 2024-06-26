@@ -22,18 +22,18 @@ export const prisma = new PrismaClient({
   ],
 });
 
-prisma.$on("error", (e: Error) => {
-  logger.error(e);
-});
+// prisma.$on("error", (e: Error) => {
+//   logger.error(e);
+// });
 
-prisma.$on("warn", (e: Error) => {
-  logger.warn(e);
-});
+// prisma.$on("warn", (e: Error) => {
+//   logger.warn(e);
+// });
 
-prisma.$on("info", (e: Error) => {
-  logger.info(e);
-});
+// prisma.$on("info", (e: Error) => {
+//   logger.info(e);
+// });
 
-prisma.$on("query", (e: Error) => {
-  logger.debug(e);
-});
+// prisma.$on("query", (e: Error) => {
+//   logger.debug(e);
+// });

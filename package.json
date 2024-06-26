@@ -7,6 +7,9 @@
     "dev": "ts-node-dev --respawn --ignore-watch node_modules src/index.ts",
     "build": "prisma generate && tsc",
     "test": "jest"
+  },  
+  "prisma": {
+    "seed": "ts-node ./prisma/seed/index.ts"
   },
   "keywords": [],
   "author": "",
