@@ -14,18 +14,12 @@ import {
 import jwt from "jsonwebtoken";
 
 export class AuthService {
-  static async loginAdmin({
-    email,
-    password,
-  }: LoginAdminRequest): Promise<LoginAdminResponse> {
-    const request = Validation.validate(AuthValidation.LOGIN_ADMIN, {
-      email,
-      password,
-    });
+  static async loginAdmin(data: LoginAdminRequest): Promise<LoginAdminResponse> {
+    const validateData = Validation.validate(AuthValidation.LOGIN_ADMIN, data);
 
     const adminData = await prisma.admin.findUnique({
       where: {
-        email: request.email,
+        email: validateData.email,
       },
       select: {
         admin_id: true,
@@ -43,7 +37,7 @@ export class AuthService {
     }
 
     const isPasswordMatch = await comparePassword(
-      request.password,
+      validateData.password,
       adminData.password
     );
 
