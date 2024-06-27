@@ -14,7 +14,9 @@ import {
 import jwt from "jsonwebtoken";
 
 export class AuthService {
-  static async loginAdmin(data: LoginAdminRequest): Promise<LoginAdminResponse> {
+  static async loginAdmin(
+    data: LoginAdminRequest
+  ): Promise<LoginAdminResponse> {
     const validateData = Validation.validate(AuthValidation.LOGIN_ADMIN, data);
 
     const adminData = await prisma.admin.findUnique({
