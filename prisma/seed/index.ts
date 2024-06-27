@@ -8,45 +8,47 @@ import { prisma } from "../../src/applications";
 import { hashPassword } from "../../src/utils";
 
 async function main() {
-  await prisma.role.deleteMany({});
-  await prisma.role.createMany({
-    data: roleDefault,
-  });
+  await prisma.$transaction(async (tx) => {
+    await tx.role.deleteMany({});
+    await tx.role.createMany({
+      data: roleDefault,
+    });
 
-  await prisma.company.deleteMany({});
-  await prisma.company.createMany({
-    data: companyDefault.map((company) => ({
-      ...company,
-    })),
-  });
+    await tx.company.deleteMany({});
+    await tx.company.createMany({
+      data: companyDefault.map((company) => ({
+        ...company,
+      })),
+    });
 
-  await prisma.department.deleteMany({});
-  await prisma.department.createMany({
-    data: departmentDefault.map((department) => ({
-      ...department,
-    })),
-  });
+    await tx.department.deleteMany({});
+    await tx.department.createMany({
+      data: departmentDefault.map((department) => ({
+        ...department,
+      })),
+    });
 
-  await prisma.jobPosition.deleteMany({});
-  await prisma.jobPosition.createMany({
-    data: jobPositionDefault.map((jobPosition) => ({
-      ...jobPosition,
-    })),
-  });
+    await tx.jobPosition.deleteMany({});
+    await tx.jobPosition.createMany({
+      data: jobPositionDefault.map((jobPosition) => ({
+        ...jobPosition,
+      })),
+    });
 
-  await prisma.employmentStatus.deleteMany({});
-  await prisma.employmentStatus.createMany({
-    data: employmentStatusDefault.map((employmentStatus) => ({
-      ...employmentStatus,
-    })),
-  });
+    await tx.employmentStatus.deleteMany({});
+    await tx.employmentStatus.createMany({
+      data: employmentStatusDefault.map((employmentStatus) => ({
+        ...employmentStatus,
+      })),
+    });
 
-  await prisma.admin.deleteMany({});
-  await prisma.admin.createMany({
-    data: adminDefault.map((admin) => ({
-      ...admin,
-      password: hashPassword(admin.password),
-    })),
+    await tx.admin.deleteMany({});
+    await tx.admin.createMany({
+      data: await Promise.all(adminDefault.map(async (admin) => ({
+        ...admin,
+        password: await hashPassword(admin.password),
+      }))),
+    });
   });
 }
 
