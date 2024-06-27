@@ -32,10 +32,12 @@ export class AuthService {
     });
 
     if (!adminData) {
-      throw new ErrorResponse("Invalid email or password", 401, [
-        "email",
-        "password",
-      ]);
+      throw new ErrorResponse(
+        "Invalid email or password",
+        401,
+        ["email", "password"],
+        "INVALID_EMAIL_OR_PASSWORD"
+      );
     }
 
     const isPasswordMatch = await comparePassword(
