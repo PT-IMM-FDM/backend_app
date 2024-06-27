@@ -21,6 +21,8 @@ model User {
   company                  Company                    @relation(fields: [company_id], references: [company_id])
   Answer                   Answer[]
   Attendance_health_result Attendance_health_result[]
+  created_at               DateTime                   @default(now())
+  deleted_at               DateTime?
 
   @@map("users")
 }
@@ -41,6 +43,8 @@ model Admin {
   department           Department       @relation(fields: [department_id], references: [department_id])
   company              Company          @relation(fields: [company_id], references: [company_id])
   role                 Role             @relation(fields: [role_id], references: [role_id])
+  created_at           DateTime         @default(now())
+  deleted_at           DateTime?
 
   @@map("admins")
 }
@@ -50,6 +54,8 @@ model Company {
   name       String
   users      User[]
   admins     Admin[]
+  created_at DateTime @default(now())
+  deleted_at DateTime?
 
   @@map("companies")
 }
@@ -59,6 +65,8 @@ model JobPosition {
   name            String
   users           User[]
   admins          Admin[]
+  created_at      DateTime @default(now())
+  deleted_at      DateTime?
 
   @@map("job_positions")
 }
@@ -68,6 +76,8 @@ model EmploymentStatus {
   name                 String
   users                User[]
   admins               Admin[]
+  created_at           DateTime @default(now())
+  deleted_at           DateTime?
 
   @@map("employment_statuses")
 }
@@ -77,6 +87,8 @@ model Department {
   name          String
   users         User[]
   admins        Admin[]
+  created_at    DateTime @default(now())
+  deleted_at    DateTime?
 
   @@map("departments")
 }
@@ -85,6 +97,7 @@ model Role {
   role_id Int     @id @default(autoincrement())
   name    String
   admins  Admin[]
+  created_at   DateTime @default(now())
 
   @@map("roles")
 }
@@ -93,6 +106,8 @@ model Question {
   question_id Int      @id @default(autoincrement())
   question    String
   answers     Answer[]
+  created_at  DateTime @default(now())
+  deleted_at  DateTime?
 
   @@map("question")
 }
@@ -104,6 +119,7 @@ model Answer {
   answer      Int
   question_id Int
   question    Question @relation(fields: [question_id], references: [question_id])
+  created_at  DateTime @default(now())
 
   @@map("answers")
 }
@@ -114,6 +130,7 @@ model Attendance_health_result {
   user                        User   @relation(fields: [user_id], references: [user_id])
   result                      Result
   recomendation               String
+  created_at                  DateTime @default(now())
 
   @@map("attendance_health_results")
 }
