@@ -29,4 +29,30 @@ export class UserController {
       next(error);
     }
   }
+
+  static async getUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        company_name,
+        job_position,
+        employment_status,
+        department,
+        name,
+      } = req.query;
+      const getUsers = await UserService.getUsers({
+        company_name: company_name as string,
+        job_position: job_position as string,
+        employment_status: employment_status as string,
+        department: department as string,
+        name: name as string,
+      });
+      return res.status(200).json({
+        success: true,
+        data: getUsers,
+        message: "Users fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

@@ -6,6 +6,7 @@ import morgan from "morgan";
 import cron from "node-cron";
 import { ErrorMiddleware } from "./middlewares";
 import { authRoute } from "./features/auth";
+import { userRoute } from "./features/user-management";
 
 dotenv.config();
 const app: Express = express();
@@ -24,7 +25,7 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 app.use("/auth", authRoute)
-
+app.use("/user", userRoute);
 
 app.use(ErrorMiddleware.notFound);
 app.use(ErrorMiddleware.returnError);

@@ -10,4 +10,9 @@ userRoute.post("/create", [
   UserController.createUser,
 ]);
 
+userRoute.get("/", [
+  JwtMiddleware.verifyToken,
+  UserController.getUsers,
+]);
+
 export default userRoute;

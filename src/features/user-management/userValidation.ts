@@ -10,8 +10,12 @@ export class UserValidation {
     phone_number: z.string(),
   });
 
-  static readonly LOGIN_USER: ZodType = z.object({
-    phone_number: z.string(),
+  static readonly GET_USER: ZodType = z.object({
+    company_name: z.string().optional(),
+    job_position: z.string().optional(),
+    employment_status: z.string().optional(),
+    department: z.string().optional(),
+    name: z.string().optional(),
   });
 
   static readonly DELETE_USER: ZodType = z.object({
