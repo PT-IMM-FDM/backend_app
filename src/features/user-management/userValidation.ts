@@ -19,11 +19,11 @@ export class UserValidation {
   });
 
   static readonly DELETE_USER: ZodType = z.object({
-    user_id: z.number(),
+    user_id: z.string(),
   });
 
   static readonly UPDATE_USER: ZodType = z.object({
-    user_id: z.number(),
+    user_id: z.string(),
     company_id: z.number().optional(),
     job_position_id: z.number().optional(),
     employment_status_id: z.number().optional(),
