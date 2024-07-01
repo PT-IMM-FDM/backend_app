@@ -15,4 +15,10 @@ userRoute.get("/", [
   UserController.getUsers,
 ]);
 
+userRoute.put("/update", [
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
+  UserController.updateUser,
+])
+
 export default userRoute;

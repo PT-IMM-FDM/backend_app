@@ -55,4 +55,34 @@ export class UserController {
       next(error);
     }
   }
+
+  static async updateUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        user_id,
+        full_name,
+        phone_number,
+        company_id,
+        job_position_id,
+        employment_status_id,
+        department_id,
+      } = req.body;
+      const updateUser = await UserService.updateUser({
+        user_id,
+        full_name,
+        phone_number,
+        company_id,
+        job_position_id,
+        employment_status_id,
+        department_id,
+      });
+      return res.status(200).json({
+        success: true,
+        data: updateUser,
+        message: "User updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

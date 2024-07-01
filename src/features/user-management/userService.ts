@@ -7,6 +7,8 @@ import {
   CreateUserResponse,
   GetUserRequest,
   GetUserResponse,
+  UpdateUserRequest,
+  UpdateUserResponse,
 } from "./userModel";
 
 export class UserService {
@@ -56,14 +58,18 @@ export class UserService {
 
     const users = await prisma.user.findMany({
       where: {
-        company_id: {in: CompanyId.map((item) => item.company_id)},
-        job_position_id: {in: jobPositionId.map((item) => item.job_position_id)},
-        employment_status_id: {in: employmentStatusId.map((item) => item.employment_status_id)},
-        department_id: {in: departmentId.map((item) => item.department_id)},
+        company_id: { in: CompanyId.map((item) => item.company_id) },
+        job_position_id: {
+          in: jobPositionId.map((item) => item.job_position_id),
+        },
+        employment_status_id: {
+          in: employmentStatusId.map((item) => item.employment_status_id),
+        },
+        department_id: { in: departmentId.map((item) => item.department_id) },
         full_name: data.name
           ? { contains: data.name, mode: "insensitive" }
           : undefined,
-        deleted_at: null
+        deleted_at: null,
       },
     });
 
@@ -76,5 +82,28 @@ export class UserService {
       );
     }
     return users;
+  }
+
+  static async updateUser(
+    data: UpdateUserRequest
+  ): Promise<UpdateUserResponse> {
+    const validateData = Validation.validate(UserValidation.UPDATE_USER, data);
+
+    const updateUser = await prisma.user.update({
+      where: {
+        user_id: validateData.user_id,
+        deleted_at: null,
+      },
+      data: {
+        company_id: validateData.company_id,
+        job_position_id: validateData.job_position_id,
+        employment_status_id: validateData.employment_status_id,
+        department_id: validateData.department_id,
+        full_name: validateData.full_name,
+        phone_number: validateData.phone_number,
+      },
+    });
+
+    return updateUser;
   }
 }

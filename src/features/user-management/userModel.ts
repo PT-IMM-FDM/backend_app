@@ -16,3 +16,15 @@ export type GetUserRequest = {
 };
 
 export type GetUserResponse = User[];
+
+export type UpdateUserRequest = {
+  user_id: string;
+  full_name?: string;
+  phone_number?: string;
+  company_id?: number;
+  job_position_id?: number;
+  employment_status_id?: number;
+  department_id?: number;
+}
+
+export type UpdateUserResponse = User;
