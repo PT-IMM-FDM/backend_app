@@ -2,9 +2,9 @@ import express, { Express } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import morgan from "morgan";
 import cron from "node-cron";
 import { ErrorMiddleware } from "./middlewares";
+import { loggerMiddleware } from "./middlewares/loggerCLI";
 import { authRoute } from "./features/auth";
 import { userRoute } from "./features/user-management";
 
@@ -17,7 +17,7 @@ cron.schedule("0 0 * * *", async () => {
 
 app.use(cors());
 app.use(express.json());
-app.use(morgan("dev"));
+app.use(loggerMiddleware); // Middleware morgan but custom
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
