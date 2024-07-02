@@ -18,6 +18,22 @@ export class UserService {
   ): Promise<CreateUserResponse> {
     const validateData = Validation.validate(UserValidation.CREATE_USER, data);
 
+    const findUser = await prisma.user.count({
+      where: { 
+        phone_number: validateData.phone_number,
+        deleted_at: null 
+      },
+    });
+
+    if (findUser > 0) {
+      throw new ErrorResponse(
+        "Phone number already exists",
+        400,
+        ["Phone number already exists"],
+        "PHONE_NUMBER_EXISTS"
+      );
+    }
+
     const createUser = await prisma.user.create({
       data: {
         company_id: validateData.company_id,
