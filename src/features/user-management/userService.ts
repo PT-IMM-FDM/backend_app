@@ -5,6 +5,7 @@ import { UserValidation } from "./userValidation";
 import {
   CreateUserRequest,
   CreateUserResponse,
+  DeleteUserRequest,
   GetUserRequest,
   GetUserResponse,
   UpdateUserRequest,
@@ -105,5 +106,31 @@ export class UserService {
     });
 
     return updateUser;
+  }
+
+  static async deleteUser(data: DeleteUserRequest) {
+    const validateData = Validation.validate(UserValidation.DELETE_USER, data);
+
+    const arrayUsers = Array.isArray(validateData.user_id)
+      ? validateData.user_id
+      : [validateData.user_id];
+
+    if (arrayUsers.length) {
+      await prisma.$transaction(async (prisma) => {
+        for (const userId of arrayUsers) {
+          const user = await prisma.user.findUnique({
+            where: { user_id: userId },
+            select: { deleted_at: true },
+          });
+
+          if (user && user.deleted_at === null) {
+            await prisma.user.update({
+              where: { user_id: userId },
+              data: { deleted_at: new Date() },
+            });
+          }
+        }
+      });
+    }
   }
 }

@@ -28,3 +28,8 @@ export type UpdateUserRequest = {
 }
 
 export type UpdateUserResponse = User;
+
+export type DeleteUserRequest = {
+  user_id: string[];
+}
+

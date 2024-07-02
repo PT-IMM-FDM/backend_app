@@ -21,4 +21,9 @@ userRoute.put("/update", [
   UserController.updateUser,
 ])
 
+userRoute.delete("/delete", [
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
+  UserController.deleteUser,
+])
 export default userRoute;
