@@ -15,6 +15,8 @@ model User {
   department_id            Int
   full_name                String
   phone_number             String                     @db.VarChar(15)
+  password                 String
+  birth_date               DateTime
   job_position             JobPosition                @relation(fields: [job_position_id], references: [job_position_id])
   employment_status        EmploymentStatus           @relation(fields: [employment_status_id], references: [employment_status_id])
   department               Department                 @relation(fields: [department_id], references: [department_id])
