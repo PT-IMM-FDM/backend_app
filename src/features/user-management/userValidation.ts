@@ -8,6 +8,7 @@ export class UserValidation {
     department_id: z.number(),
     full_name: z.string(),
     phone_number: z.string(),
+    birth_date: z.date()
   });
 
   static readonly GET_USER: ZodType = z.object({

@@ -11,17 +11,20 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from "./userModel";
+import { hashPassword } from "../../utils";
 
 export class UserService {
   static async createUser(
     data: CreateUserRequest
   ): Promise<CreateUserResponse> {
+    data.birth_date = new Date(data.birth_date)
+
     const validateData = Validation.validate(UserValidation.CREATE_USER, data);
 
     const findUser = await prisma.user.count({
-      where: { 
+      where: {
         phone_number: validateData.phone_number,
-        deleted_at: null 
+        deleted_at: null,
       },
     });
 
@@ -34,6 +37,15 @@ export class UserService {
       );
     }
 
+    const first_name = data.full_name.split(" ")[0].toLowerCase();
+    const dateDay = data.birth_date.getDate();
+    const dateMonth = data.birth_date.getUTCMonth() + 1;
+    const dateFullYear = data.birth_date.getFullYear();
+
+    const password_generator = `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
+
+    console.log(password_generator)
+
     const createUser = await prisma.user.create({
       data: {
         company_id: validateData.company_id,
@@ -42,6 +54,8 @@ export class UserService {
         department_id: validateData.department_id,
         full_name: validateData.full_name,
         phone_number: validateData.phone_number,
+        birth_date: validateData.birth_date,
+        password: await hashPassword(password_generator),
       },
     });
 
