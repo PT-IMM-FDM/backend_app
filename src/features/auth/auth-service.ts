@@ -1,6 +1,6 @@
 import { Validation } from "../../validations";
 import { prisma } from "../../applications";
-import { comparePassword, hashPassword } from "../../utils";
+import { comparePassword } from "../../utils";
 import { ErrorResponse } from "../../models";
 import { AuthValidation } from "./auth-validation";
 import {
@@ -71,18 +71,15 @@ export class AuthService {
     };
   }
 
-  static async loginUser({
-    number_phone,
-  }: LoginUserRequest): Promise<LoginUserResponse> {
-    const request = Validation.validate(AuthValidation.LOGIN_USER, {
-      number_phone,
-    });
+  static async loginUser(data: LoginUserRequest): Promise<LoginUserResponse> {
+    const validateData = Validation.validate(AuthValidation.LOGIN_USER, data);
 
     const userData = await prisma.user.findFirst({
       where: {
-        phone_number: request.number_phone,
+        phone_number: validateData.number_phone,
       },
       select: {
+        password: true,
         user_id: true,
         company_id: true,
       },
@@ -94,6 +91,19 @@ export class AuthService {
         401,
         ["number_phone"],
         "INVALID_PHONE_NUMBER"
+      );
+    }
+    const checkPassword = await comparePassword(
+      validateData.password,
+      userData.password
+    );
+
+    if (!checkPassword) {
+      throw new ErrorResponse(
+        "Invalid password",
+        401,
+        ["password"],
+        "INVALID_PASSWORD"
       );
     }
 

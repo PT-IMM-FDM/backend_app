@@ -11,6 +11,7 @@ export type LoginAdminResponse = {
 
 export type LoginUserRequest = {
   number_phone: string;
+  password: string;
 }
 
 export type LoginUserResponse = {

@@ -8,5 +8,6 @@ export class AuthValidation {
 
   static readonly LOGIN_USER: ZodType = z.object({
     number_phone: z.string(),
+    password: z.string(),
   });
 }

@@ -19,8 +19,8 @@ export class AuthController {
 
   static async loginUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const { number_phone } = req.body;
-      const token = await AuthService.loginUser({ number_phone });
+      const { number_phone, password } = req.body;
+      const token = await AuthService.loginUser({ number_phone, password });
       return res.status(200).json({
         success: true,
         data: { ...token },
