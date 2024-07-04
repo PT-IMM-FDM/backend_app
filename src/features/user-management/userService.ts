@@ -13,11 +13,38 @@ import {
 } from "./userModel";
 import { hashPassword } from "../../utils";
 
+let formatUserResponseData = {
+  user_id: true,
+  full_name: true,
+  phone_number: true,
+  birth_date: true,
+  job_position: {
+    select: {
+      name: true,
+    },
+  },
+  department: {
+    select: {
+      name: true,
+    },
+  },
+  company: {
+    select: {
+      name: true,
+    },
+  },
+  employment_status: {
+    select: {
+      name: true,
+    },
+  },
+};
+
 export class UserService {
   static async createUser(
     data: CreateUserRequest
   ): Promise<CreateUserResponse> {
-    data.birth_date = new Date(data.birth_date)
+    data.birth_date = new Date(data.birth_date);
 
     const validateData = Validation.validate(UserValidation.CREATE_USER, data);
 
@@ -43,9 +70,7 @@ export class UserService {
     const dateFullYear = data.birth_date.getFullYear();
 
     const password_generator = `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
-
-    console.log(password_generator)
-
+    
     const createUser = await prisma.user.create({
       data: {
         company_id: validateData.company_id,
@@ -57,12 +82,12 @@ export class UserService {
         birth_date: validateData.birth_date,
         password: await hashPassword(password_generator),
       },
+      select: formatUserResponseData,
     });
-
     return createUser;
   }
 
-  static async getUsers(data: GetUserRequest): Promise<GetUserResponse> {
+  static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
     const CompanyId = await prisma.company.findMany({
       where: {
         name: { contains: data.company_name, mode: "insensitive" },
@@ -102,16 +127,8 @@ export class UserService {
           : undefined,
         deleted_at: null,
       },
+      select: formatUserResponseData,
     });
-
-    if (!users) {
-      throw new ErrorResponse(
-        "Users not found",
-        404,
-        ["Users not found"],
-        "USERS_NOT_FOUND"
-      );
-    }
     return users;
   }
 

@@ -5,7 +5,7 @@ export type CreateUserRequest = Omit<
   "user_id"| "password" | "created_at" | "deleted_at"
 >;
 
-export type CreateUserResponse = User;
+export type CreateUserResponse = GetUserResponse;
 
 export type GetUserRequest = {
   company_name?: string;
@@ -15,7 +15,24 @@ export type GetUserRequest = {
   name?: string;
 };
 
-export type GetUserResponse = User[];
+export type GetUserResponse = {
+  user_id: string;
+  full_name: string;
+  phone_number: string;
+  birth_date: Date;
+  company: {
+    name: string;
+  };
+  job_position: {
+    name: string;
+  };
+  employment_status: {
+    name: string;
+  };
+  department: {
+    name: string;
+  };
+};
 
 export type UpdateUserRequest = {
   user_id: string;
