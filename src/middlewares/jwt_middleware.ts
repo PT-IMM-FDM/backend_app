@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ErrorResponse } from "../models";
 import jwt from "jsonwebtoken";
-import { AdminToken, UserToken } from "../models/token_model";
+import { UserToken } from "../models/token_model";
 import { prisma } from "../applications";
 
 export class JwtMiddleware {
@@ -12,7 +12,7 @@ export class JwtMiddleware {
         throw new ErrorResponse("Unauthorized", 401, ["token"], "UNAUTHORIZED");
       }
       const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-      res.locals.user = decoded as AdminToken | UserToken;
+      res.locals.user = decoded as UserToken;
       next();
     } catch (error) {
       next(error);
@@ -21,12 +21,12 @@ export class JwtMiddleware {
 
   static async adminOnly(req: Request, res: Response, next: NextFunction) {
     try {
-      const { admin_id } = res.locals.user as AdminToken;
+      const { user_id } = res.locals.user as UserToken;
 
-      if (admin_id) {
-        const adminData = await prisma.admin.findFirst({
+      if (user_id) {
+        const userData = await prisma.user.findFirst({
           where: {
-            admin_id,
+            user_id,
           },
           select: {
             role: {
@@ -38,8 +38,8 @@ export class JwtMiddleware {
         });
 
         if (
-          adminData &&
-          adminData.role.name !== "Admin"
+          userData &&
+          userData.role.name !== "Admin"
         ) {
           throw new ErrorResponse(
             "Only be accessed by Admin.",
