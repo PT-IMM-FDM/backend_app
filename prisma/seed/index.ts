@@ -42,11 +42,12 @@ async function main() {
       })),
     });
 
-    await tx.admin.deleteMany({});
-    await tx.admin.createMany({
-      data: await Promise.all(adminDefault.map(async (admin) => ({
-        ...admin,
-        password: await hashPassword(admin.password),
+    await tx.user.deleteMany({});
+    await tx.user.createMany({
+      data: await Promise.all(adminDefault.map(async (user) => ({
+        ...user,
+        password: await hashPassword(user.password),
+        birth_date: new Date(user.birth_date),
       }))),
     });
   });
