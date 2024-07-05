@@ -13,7 +13,7 @@ model User {
   phone_number             String                     @db.VarChar(15)
   password                 String
   birth_date               DateTime
-  email                    String
+  email                    String?
   company_id               Int
   job_position_id          Int
   employment_status_id     Int

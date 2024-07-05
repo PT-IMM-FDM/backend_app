@@ -3,28 +3,14 @@ import { AuthService } from "./auth-service";
 import { AdminToken, UserToken } from "../../models";
 
 export class AuthController {
-  static async loginAdmin(req: Request, res: Response, next: NextFunction) {
+  static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
-      const token = await AuthService.loginAdmin({ email, password });
+      const { email, phone_number, password } = req.body;
+      const token = await AuthService.login({ email, phone_number, password });
       return res.status(200).json({
         success: true,
         data: { ...token },
-        message: "Admin logged in successfully",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async loginUser(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { number_phone, password } = req.body;
-      const token = await AuthService.loginUser({ number_phone, password });
-      return res.status(200).json({
-        success: true,
-        data: { ...token },
-        message: "User logged in successfully",
+        message: "login successfully",
       });
     } catch (error) {
       next(error);
@@ -33,8 +19,8 @@ export class AuthController {
 
   static async currentLoggedIn(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = res.locals.user as AdminToken | UserToken;
-      const data = await AuthService.currentLoggedIn(user.admin_id, user.user_id);
+      const user = res.locals.user as UserToken;
+      const data = await AuthService.currentLoggedIn(user.user_id);
       return res.status(200).json({
         success: true,
         data,

@@ -4,34 +4,29 @@ import { comparePassword } from "../../utils";
 import { ErrorResponse } from "../../models";
 import { AuthValidation } from "./auth-validation";
 import {
-  LoginAdminRequest,
-  LoginAdminResponse,
-  LoginUserRequest,
-  LoginUserResponse,
-  CurrentLoggedInAdminResponse,
+  LoginRequest,
+  LoginResponse,
   CurrentLoggedInUserResponse,
 } from "./auth-model";
 import jwt from "jsonwebtoken";
 
 export class AuthService {
-  static async loginAdmin(
-    data: LoginAdminRequest
-  ): Promise<LoginAdminResponse> {
-    const validateData = Validation.validate(AuthValidation.LOGIN_ADMIN, data);
+  static async login(data: LoginRequest): Promise<LoginResponse> {
+    const validateData = Validation.validate(AuthValidation.LOGIN, data);
 
-    const adminData = await prisma.admin.findUnique({
+    const userData = await prisma.user.findFirst({
       where: {
         email: validateData.email,
+        phone_number: validateData.phone_number,
       },
       select: {
-        admin_id: true,
+        user_id: true,
         password: true,
-        company_id: true,
         role_id: true,
       },
     });
 
-    if (!adminData) {
+    if (!userData) {
       throw new ErrorResponse(
         "Invalid email or password",
         401,
@@ -42,7 +37,7 @@ export class AuthService {
 
     const isPasswordMatch = await comparePassword(
       validateData.password,
-      adminData.password
+      userData.password
     );
 
     if (!isPasswordMatch) {
@@ -56,61 +51,8 @@ export class AuthService {
 
     const token = jwt.sign(
       {
-        admin_id: adminData.admin_id,
-        company_id: adminData.company_id,
-        role_id: adminData.role_id,
-      },
-      process.env.JWT_SECRET!,
-      {
-        expiresIn: "1d",
-      }
-    );
-
-    return {
-      token,
-    };
-  }
-
-  static async loginUser(data: LoginUserRequest): Promise<LoginUserResponse> {
-    const validateData = Validation.validate(AuthValidation.LOGIN_USER, data);
-
-    const userData = await prisma.user.findFirst({
-      where: {
-        phone_number: validateData.number_phone,
-      },
-      select: {
-        password: true,
-        user_id: true,
-        company_id: true,
-      },
-    });
-
-    if (!userData) {
-      throw new ErrorResponse(
-        "Invalid phone number",
-        401,
-        ["number_phone"],
-        "INVALID_PHONE_NUMBER"
-      );
-    }
-    const checkPassword = await comparePassword(
-      validateData.password,
-      userData.password
-    );
-
-    if (!checkPassword) {
-      throw new ErrorResponse(
-        "Invalid password",
-        401,
-        ["password"],
-        "INVALID_PASSWORD"
-      );
-    }
-
-    const token = jwt.sign(
-      {
-        user_id: userData.user_id,
-        company_id: userData.company_id,
+        admin_id: userData.user_id,
+        role_id: userData.role_id,
       },
       process.env.JWT_SECRET!,
       {
@@ -124,77 +66,39 @@ export class AuthService {
   }
 
   static async currentLoggedIn(
-    admin_id?: string,
-    user_id?: string
-  ): Promise<CurrentLoggedInUserResponse | CurrentLoggedInAdminResponse> {
-    if (admin_id) {
-      const adminData = await prisma.admin.findUnique({
-        where: {
-          admin_id,
-        },
-        select: {
-          admin_id: true,
-          email: true,
-          full_name: true,
-          phone_number: true,
-          company: {
-            select: {
-              name: true,
-            },
-          },
-          department: {
-            select: {
-              department_id: true,
-              name: true,
-            },
-          },
-          employment_status: {
-            select: {
-              employment_status_id: true,
-              name: true,
-            },
-          },
-          job_position: {
-            select: {
-              job_position_id: true,
-              name: true,
-            },
-          },
-          role: {
-            select: {
-              role_id: true,
-              name: true,
-            },
-          },
-        },
-      });
-
-      if (!adminData) {
-        throw new ErrorResponse(
-          "Admin not found",
-          404,
-          ["admin_id"],
-          "ADMIN_NOT_FOUND"
-        );
-      }
-
-      return adminData;
-    }
-
+    user_id: string
+  ): Promise<CurrentLoggedInUserResponse> {
     const userData = await prisma.user.findUnique({
       where: {
         user_id,
       },
-      include: {
-        job_position: {
+      select: {
+        user_id: true,
+        email: true,
+        full_name: true,
+        phone_number: true,
+        company: {
           select: {
-            job_position_id: true,
+            name: true,
+          },
+        },
+        department: {
+          select: {
             name: true,
           },
         },
         employment_status: {
           select: {
-            employment_status_id: true,
+            name: true,
+          },
+        },
+        job_position: {
+          select: {
+            name: true,
+          },
+        },
+        role: {
+          select: {
             name: true,
           },
         },
