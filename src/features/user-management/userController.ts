@@ -12,6 +12,7 @@ export class UserController {
         job_position_id,
         employment_status_id,
         department_id,
+        role_id
       } = req.body;
       console.log(birth_date)
       
@@ -23,6 +24,7 @@ export class UserController {
         job_position_id,
         employment_status_id,
         department_id,
+        role_id,
       });
       return res.status(200).json({
         success: true,

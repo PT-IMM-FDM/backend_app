@@ -11,13 +11,14 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from "./userModel";
-import { hashPassword } from "../../utils";
+import { Password_generator, hashPassword } from "../../utils";
 
 let formatUserResponseData = {
   user_id: true,
   full_name: true,
   phone_number: true,
   birth_date: true,
+  email: true,
   job_position: {
     select: {
       name: true,
@@ -38,6 +39,11 @@ let formatUserResponseData = {
       name: true,
     },
   },
+  role: {
+    select: {
+      name: true,
+    }
+  }
 };
 
 export class UserService {
@@ -65,11 +71,12 @@ export class UserService {
     }
 
     const first_name = data.full_name.split(" ")[0].toLowerCase();
-    const dateDay = data.birth_date.getDate();
-    const dateMonth = data.birth_date.getUTCMonth() + 1;
+    const dateDay = String(data.birth_date.getDate()).padStart(2, '0');
+    const dateMonth = String(data.birth_date.getUTCMonth() + 1).padStart(2, '0');
     const dateFullYear = data.birth_date.getFullYear();
-
-    const password_generator = `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
+    const format_password = `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
+    
+    const generate_password = await password_generator(first_name, format_password);
     
     const createUser = await prisma.user.create({
       data: {
@@ -80,7 +87,8 @@ export class UserService {
         full_name: validateData.full_name,
         phone_number: validateData.phone_number,
         birth_date: validateData.birth_date,
-        password: await hashPassword(password_generator),
+        password: await hashPassword(generate_password),
+        role_id: validateData.role_id,
       },
       select: formatUserResponseData,
     });
@@ -149,6 +157,9 @@ export class UserService {
         department_id: validateData.department_id,
         full_name: validateData.full_name,
         phone_number: validateData.phone_number,
+        email: validateData.email,
+        birth_date: validateData.birth_date,
+        role_id: validateData.role_id,
       },
     });
 

@@ -6,6 +6,7 @@ export class UserValidation {
     job_position_id: z.number(),
     employment_status_id: z.number(),
     department_id: z.number(),
+    role_id: z.number(),
     full_name: z.string(),
     phone_number: z.string(),
     birth_date: z.date()
@@ -28,8 +29,11 @@ export class UserValidation {
     company_id: z.number().optional(),
     job_position_id: z.number().optional(),
     employment_status_id: z.number().optional(),
+    role_id: z.number().optional(),
     department_id: z.number().optional(),
     full_name: z.string().optional(),
     phone_number: z.string().optional(),
+    email: z.string().optional(),
+    birth_date: z.date().optional(),
   });
 }
