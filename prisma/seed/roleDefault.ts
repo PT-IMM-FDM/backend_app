@@ -5,4 +5,7 @@ export const roleDefault = [
   {
     name: "Viewer",
   },
+  {
+    name: "User",
+  }
 ];

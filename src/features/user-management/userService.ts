@@ -11,17 +11,53 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from "./userModel";
+import { Password_generator, hashPassword } from "../../utils";
+
+let formatUserResponseData = {
+  user_id: true,
+  full_name: true,
+  phone_number: true,
+  birth_date: true,
+  email: true,
+  job_position: {
+    select: {
+      name: true,
+    },
+  },
+  department: {
+    select: {
+      name: true,
+    },
+  },
+  company: {
+    select: {
+      name: true,
+    },
+  },
+  employment_status: {
+    select: {
+      name: true,
+    },
+  },
+  role: {
+    select: {
+      name: true,
+    }
+  }
+};
 
 export class UserService {
   static async createUser(
     data: CreateUserRequest
   ): Promise<CreateUserResponse> {
+    data.birth_date = new Date(data.birth_date);
+
     const validateData = Validation.validate(UserValidation.CREATE_USER, data);
 
     const findUser = await prisma.user.count({
-      where: { 
+      where: {
         phone_number: validateData.phone_number,
-        deleted_at: null 
+        deleted_at: null,
       },
     });
 
@@ -34,6 +70,14 @@ export class UserService {
       );
     }
 
+    const first_name = data.full_name.split(" ")[0].toLowerCase();
+    const dateDay = String(data.birth_date.getDate()).padStart(2, '0');
+    const dateMonth = String(data.birth_date.getUTCMonth() + 1).padStart(2, '0');
+    const dateFullYear = data.birth_date.getFullYear();
+    const format_password = `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
+    
+    const generate_password = await password_generator(first_name, format_password);
+    
     const createUser = await prisma.user.create({
       data: {
         company_id: validateData.company_id,
@@ -42,13 +86,16 @@ export class UserService {
         department_id: validateData.department_id,
         full_name: validateData.full_name,
         phone_number: validateData.phone_number,
+        birth_date: validateData.birth_date,
+        password: await hashPassword(generate_password),
+        role_id: validateData.role_id,
       },
+      select: formatUserResponseData,
     });
-
     return createUser;
   }
 
-  static async getUsers(data: GetUserRequest): Promise<GetUserResponse> {
+  static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
     const CompanyId = await prisma.company.findMany({
       where: {
         name: { contains: data.company_name, mode: "insensitive" },
@@ -88,16 +135,8 @@ export class UserService {
           : undefined,
         deleted_at: null,
       },
+      select: formatUserResponseData,
     });
-
-    if (!users) {
-      throw new ErrorResponse(
-        "Users not found",
-        404,
-        ["Users not found"],
-        "USERS_NOT_FOUND"
-      );
-    }
     return users;
   }
 
@@ -118,6 +157,9 @@ export class UserService {
         department_id: validateData.department_id,
         full_name: validateData.full_name,
         phone_number: validateData.phone_number,
+        email: validateData.email,
+        birth_date: validateData.birth_date,
+        role_id: validateData.role_id,
       },
     });
 

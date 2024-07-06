@@ -1,12 +1,8 @@
 import { z, ZodType } from "zod";
 
 export class AuthValidation {
-  static readonly LOGIN_ADMIN: ZodType = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
-  });
-
-  static readonly LOGIN_USER: ZodType = z.object({
-    number_phone: z.string(),
+  static readonly LOGIN: ZodType = z.object({
+    email_or_phone_number: z.string(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
   });
 }

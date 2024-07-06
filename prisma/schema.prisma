@@ -9,16 +9,21 @@ datasource db {
 
 model User {
   user_id                  String                     @id @default(uuid())
+  full_name                String
+  phone_number             String                     @db.VarChar(15)
+  password                 String
+  birth_date               DateTime
+  email                    String?
   company_id               Int
   job_position_id          Int
   employment_status_id     Int
   department_id            Int
-  full_name                String
-  phone_number             String                     @db.VarChar(15)
+  role_id                  Int                        
   job_position             JobPosition                @relation(fields: [job_position_id], references: [job_position_id])
   employment_status        EmploymentStatus           @relation(fields: [employment_status_id], references: [employment_status_id])
   department               Department                 @relation(fields: [department_id], references: [department_id])
   company                  Company                    @relation(fields: [company_id], references: [company_id])
+  role                     Role                       @relation(fields: [role_id], references: [role_id])
   Answer                   Answer[]
   Attendance_health_result Attendance_health_result[]
   created_at               DateTime                   @default(now())
@@ -27,33 +32,10 @@ model User {
   @@map("users")
 }
 
-model Admin {
-  admin_id             String           @id @default(uuid())
-  full_name            String
-  phone_number         String           @db.VarChar(15)
-  email                String           @unique
-  password             String
-  company_id           Int
-  job_position_id      Int
-  employment_status_id Int
-  department_id        Int
-  role_id              Int
-  job_position         JobPosition      @relation(fields: [job_position_id], references: [job_position_id])
-  employment_status    EmploymentStatus @relation(fields: [employment_status_id], references: [employment_status_id])
-  department           Department       @relation(fields: [department_id], references: [department_id])
-  company              Company          @relation(fields: [company_id], references: [company_id])
-  role                 Role             @relation(fields: [role_id], references: [role_id])
-  created_at           DateTime         @default(now())
-  deleted_at           DateTime?
-
-  @@map("admins")
-}
-
 model Company {
   company_id Int     @id @default(autoincrement())
   name       String
   users      User[]
-  admins     Admin[]
   created_at DateTime @default(now())
   deleted_at DateTime?
 
@@ -64,7 +46,6 @@ model JobPosition {
   job_position_id Int     @id @default(autoincrement())
   name            String
   users           User[]
-  admins          Admin[]
   created_at      DateTime @default(now())
   deleted_at      DateTime?
 
@@ -75,7 +56,6 @@ model EmploymentStatus {
   employment_status_id Int     @id @default(autoincrement())
   name                 String
   users                User[]
-  admins               Admin[]
   created_at           DateTime @default(now())
   deleted_at           DateTime?
 
@@ -86,7 +66,6 @@ model Department {
   department_id Int     @id @default(autoincrement())
   name          String
   users         User[]
-  admins        Admin[]
   created_at    DateTime @default(now())
   deleted_at    DateTime?
 
@@ -96,7 +75,7 @@ model Department {
 model Role {
   role_id Int     @id @default(autoincrement())
   name    String
-  admins  Admin[]
+  users        User[]
   created_at   DateTime @default(now())
 
   @@map("roles")

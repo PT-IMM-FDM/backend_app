@@ -12,6 +12,7 @@ userRoute.post("/create", [
 
 userRoute.get("/", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOrViewer,
   UserController.getUsers,
 ]);
 

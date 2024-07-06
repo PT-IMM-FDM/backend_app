@@ -4,8 +4,7 @@ import { AuthController } from "./auth-controller";
 
 const authRoute: Router = Router();
 
-authRoute.post("/login/admin", AuthController.loginAdmin);
-authRoute.post("/login/user", AuthController.loginUser);
+authRoute.post("/login", AuthController.login);
 authRoute.get("/me", [
   JwtMiddleware.verifyToken,
   AuthController.currentLoggedIn,

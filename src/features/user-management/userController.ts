@@ -8,17 +8,23 @@ export class UserController {
         full_name,
         phone_number,
         company_id,
+        birth_date,
         job_position_id,
         employment_status_id,
         department_id,
+        role_id
       } = req.body;
+      console.log(birth_date)
+      
       const createUser = await UserService.createUser({
         full_name,
         phone_number,
         company_id,
+        birth_date,
         job_position_id,
         employment_status_id,
         department_id,
+        role_id,
       });
       return res.status(200).json({
         success: true,

@@ -7,6 +7,7 @@ import { ErrorMiddleware } from "./middlewares";
 import { loggerMiddleware } from "./middlewares/loggerCLI";
 import { authRoute } from "./features/auth";
 import { userRoute } from "./features/user-management";
+import { documentRoute } from "./features/documentTransfer";
 
 dotenv.config();
 const app: Express = express();
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 });
 app.use("/auth", authRoute)
 app.use("/user", userRoute);
+app.use("/document", documentRoute);
 
 app.use(ErrorMiddleware.notFound);
 app.use(ErrorMiddleware.returnError);
