@@ -14,10 +14,25 @@ export class AuthService {
   static async login(data: LoginRequest): Promise<LoginResponse> {
     const validateData = Validation.validate(AuthValidation.LOGIN, data);
 
+    if (!validateData.email_or_phone_number) {
+      throw new ErrorResponse(
+        "Email or phone number is required",
+        400,
+        ["email", "phone_number"],
+        "REQUIRED"
+      );
+    }
+
     const userData = await prisma.user.findFirst({
       where: {
-        email: validateData.email,
-        phone_number: validateData.phone_number,
+        OR: [
+          {
+            email: validateData.email_or_phone_number,
+          },
+          {
+            phone_number: validateData.email_or_phone_number,
+          },
+        ]
       },
       select: {
         user_id: true,
@@ -51,7 +66,7 @@ export class AuthService {
 
     const token = jwt.sign(
       {
-        admin_id: userData.user_id,
+        user_id: userData.user_id,
         role_id: userData.role_id,
       },
       process.env.JWT_SECRET!,
@@ -68,6 +83,7 @@ export class AuthService {
   static async currentLoggedIn(
     user_id: string
   ): Promise<CurrentLoggedInUserResponse> {
+    console.log(user_id)
     const userData = await prisma.user.findUnique({
       where: {
         user_id,

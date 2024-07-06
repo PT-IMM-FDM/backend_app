@@ -1,8 +1,5 @@
-import { User } from "@prisma/client";
-
 export type LoginRequest = {
-  email: string | null;
-  phone_number: string;
+  email_or_phone_number: string;
   password: string;
 }
 

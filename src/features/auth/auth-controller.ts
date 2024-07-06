@@ -5,8 +5,8 @@ import { UserToken } from "../../models";
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, phone_number, password } = req.body;
-      const token = await AuthService.login({ email, phone_number, password });
+      const { email_or_phone_number, password } = req.body;
+      const token = await AuthService.login({ email_or_phone_number, password });
       return res.status(200).json({
         success: true,
         data: { ...token },
