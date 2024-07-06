@@ -15,3 +15,12 @@ export const pathToFileFolder = (filePath: string) => {
 export const formatSpacedFileName = (fileName: string): string => {
   return fileName.replace(/ /g, "_");
 };
+
+export const password_generator = (name: string, birth_date: Date) => {
+  const first_name = name.split(" ")[0].toLowerCase();
+  const dateDay = String(birth_date.getDate()).padStart(2, '0');
+  const dateMonth = String(birth_date.getUTCMonth() + 1).padStart(2, '0');
+  const dateFullYear = birth_date.getFullYear();
+
+  return `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
+}

@@ -11,7 +11,7 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from "./userModel";
-import { Password_generator, hashPassword } from "../../utils";
+import { password_generator, hashPassword } from "../../utils";
 
 let formatUserResponseData = {
   user_id: true,
@@ -69,14 +69,8 @@ export class UserService {
         "PHONE_NUMBER_EXISTS"
       );
     }
-
-    const first_name = data.full_name.split(" ")[0].toLowerCase();
-    const dateDay = String(data.birth_date.getDate()).padStart(2, '0');
-    const dateMonth = String(data.birth_date.getUTCMonth() + 1).padStart(2, '0');
-    const dateFullYear = data.birth_date.getFullYear();
-    const format_password = `${first_name}${dateDay}${dateMonth}${dateFullYear}`;
     
-    const generate_password = await password_generator(first_name, format_password);
+    const generate_password = await password_generator(data.full_name, data.birth_date);
     
     const createUser = await prisma.user.create({
       data: {
