@@ -71,7 +71,7 @@ export class JwtMiddleware {
         });
 
         if (
-          (userData && userData.role.name !== "Admin") &&
+          (userData && userData.role.name !== "Admin") ||
           (userData && userData.role.name !== "Viewer")
         ) {
           throw new ErrorResponse(
