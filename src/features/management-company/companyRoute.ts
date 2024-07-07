@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { CompanyController } from "./companyController";
 import { JwtMiddleware } from "../../middlewares/jwt_middleware";
+import { JobPositionRoute } from "./management-job-position";
 
 const companyRoute = Router();
+
+companyRoute.use("/job-position", JobPositionRoute)
 
 companyRoute.post("/create", [
   JwtMiddleware.verifyToken,
