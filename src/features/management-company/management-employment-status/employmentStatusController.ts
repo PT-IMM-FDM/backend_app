@@ -45,11 +45,11 @@ export class EmploymentStatusController {
     next: NextFunction
   ) {
     try {
-      const { employment_status_id, name } = req.body;
+      const { employment_status_id, new_name } = req.body;
       const employmentStatus =
         await EmploymentStatusService.updateEmploymentStatus({
           employment_status_id,
-          name,
+          new_name,
         });
       res.status(200).json({
         success: true,

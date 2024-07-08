@@ -10,7 +10,7 @@ export type GetJobPositionResponse = JobPosition[]
 
 export type UpdateJobPositionRequest = {
   job_position_id: number;
-  name: string;
+  new_name: string;
 };
 
 export type UpdateCompanyResponse = JobPosition

@@ -10,7 +10,7 @@ export type GetCompanyResponse = Company[]
 
 export type UpdateCompanyRequest = {
   company_id: number;
-  name: string;
+  new_name: string;
 };
 
 export type UpdateCompanyResponse = Company

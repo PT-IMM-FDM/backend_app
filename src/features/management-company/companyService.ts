@@ -39,7 +39,7 @@ export class CompanyService {
         company_id: validateData.company_id,
       },
       data: {
-        name: validateData.name,
+        name: validateData.new_name,
       },
     });
 

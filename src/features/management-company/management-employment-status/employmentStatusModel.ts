@@ -10,7 +10,7 @@ export type GetEmploymentStatusResponse = EmploymentStatus[];
 
 export type UpdateEmploymentStatusRequest = {
   employment_status_id: number;
-  name: string;
+  new_name: string;
 };
 
 export type UpdateEmploymentStatusResponse = EmploymentStatus;

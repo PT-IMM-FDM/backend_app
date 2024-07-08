@@ -31,8 +31,8 @@ export class CompanyController {
 
   static async updateCompany(req: Request, res: Response, next: NextFunction) {
     try {
-      const { company_id, name } = req.body;
-      const company = await CompanyService.updateCompany({ company_id, name });
+      const { company_id, new_name } = req.body;
+      const company = await CompanyService.updateCompany({ company_id, new_name });
       res.status(200).json({
         success: true,
         data: company,

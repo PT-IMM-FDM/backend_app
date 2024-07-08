@@ -33,8 +33,8 @@ export class DepartmentController {
 
   static async updateDepartment(req: Request, res: Response, next: NextFunction) {
     try {
-      const { department_id, name } = req.body;
-      const department = await DepartmentService.updateDepartment({ department_id, name });
+      const { department_id, new_name } = req.body;
+      const department = await DepartmentService.updateDepartment({ department_id, new_name });
       res.status(200).json({
         success: true,
         data: department,

@@ -39,7 +39,7 @@ export class DepartmentService {
         department_id: validateData.department_id,
       },
       data: {
-        name: validateData.name,
+        name: validateData.new_name,
       },
     });
 

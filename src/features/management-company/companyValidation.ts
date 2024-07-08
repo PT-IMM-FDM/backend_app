@@ -7,7 +7,7 @@ export class CompanyValidation {
 
   static readonly UPDATE_COMPANY: ZodType = z.object({
     company_id: z.number().int(),
-    name: z.string().trim().min(1, "Name must not be empty"),
+    new_name: z.string().trim().min(1, "Name must not be empty"),
   });
 
   static readonly DELETE_COMPANY: ZodType = z.object({

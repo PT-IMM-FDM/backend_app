@@ -39,7 +39,7 @@ export class EmploymentStatusService {
         employment_status_id: validateData.employment_status_id,
       },
       data: {
-        name: validateData.name,
+        name: validateData.new_name,
       },
     });
 

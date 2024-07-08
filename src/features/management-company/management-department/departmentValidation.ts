@@ -7,7 +7,7 @@ export class DepartmentValidation {
 
   static readonly UPDATE_DEPARTMENT: ZodType = z.object({
     department_id: z.number().int().positive("Department ID must be positive"),
-    name: z.string().trim().min(1, "Name must not be empty"),
+    new_name: z.string().trim().min(1, "Name must not be empty"),
   });
 
   static readonly DELETE_DEPARTMENT: ZodType = z.object({

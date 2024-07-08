@@ -7,7 +7,7 @@ export class EmploymentStatusValidation {
 
   static readonly UPDATE_EMPLOYMENT_STATUS: ZodType = z.object({
     employment_status_id: z.number().int(),
-    name: z.string().trim().min(1, "Name must not be empty"),
+    new_name: z.string().trim().min(1, "Name must not be empty"),
   });
 
   static readonly DELETE_EMPLOYMENT_STATUS: ZodType = z.object({

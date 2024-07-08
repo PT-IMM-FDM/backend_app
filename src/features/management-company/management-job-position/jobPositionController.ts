@@ -31,8 +31,8 @@ export class JobPositionController {
 
   static async updateJobPosition(req: Request, res: Response, next: NextFunction) {
     try {
-      const { job_position_id, name } = req.body;
-      const jobPosition = await JobPositionService.updateJobPosition({ job_position_id, name });
+      const { job_position_id, new_name } = req.body;
+      const jobPosition = await JobPositionService.updateJobPosition({ job_position_id, new_name });
       res.status(200).json({
         success: true,
         data: jobPosition,

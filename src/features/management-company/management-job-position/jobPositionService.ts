@@ -39,7 +39,7 @@ export class JobPositionService {
         job_position_id: validateData.job_position_id,
       },
       data: {
-        name: validateData.name,
+        name: validateData.new_name,
       },
     });
 

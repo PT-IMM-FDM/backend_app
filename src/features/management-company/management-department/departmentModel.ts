@@ -10,7 +10,7 @@ export type GetDepartmentResponse = Department[];
 
 export type UpdateDepartmentRequest = {
   department_id: number;
-  name: string;
+  new_name: string;
 };
 
 export type UpdateDepartmentResponse = Department;
