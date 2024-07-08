@@ -2,10 +2,12 @@ import { Router } from "express";
 import { CompanyController } from "./companyController";
 import { JwtMiddleware } from "../../middlewares/jwt_middleware";
 import { JobPositionRoute } from "./management-job-position";
+import { EmploymentStatusRoute } from "./management-employment-status";
 
 const companyRoute = Router();
 
 companyRoute.use("/job-position", JobPositionRoute)
+companyRoute.use("/employment-status", EmploymentStatusRoute)
 
 companyRoute.post("/create", [
   JwtMiddleware.verifyToken,
