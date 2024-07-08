@@ -2,7 +2,11 @@ import { Validation } from "../../validations";
 import { ErrorResponse } from "../../models";
 import { prisma } from "../../applications";
 import { CompanyValidation } from "./companyValidation";
-import { CreateCompanyRequest, DeleteCompanyRequest, UpdateCompanyRequest } from "./companyModel";
+import {
+  CreateCompanyRequest,
+  DeleteCompanyRequest,
+  UpdateCompanyRequest,
+} from "./companyModel";
 
 export class CompanyService {
   static async createCompany(data: CreateCompanyRequest) {
@@ -55,6 +59,4 @@ export class CompanyService {
 
     return company;
   }
-
-
 }
