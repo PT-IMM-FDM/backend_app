@@ -1,6 +1,6 @@
-import { Validation } from "../../validations";
-import { ErrorResponse } from "../../models";
-import { prisma } from "../../applications";
+import { Validation } from "../../../validations";
+import { ErrorResponse } from "../../../models";
+import { prisma } from "../../../applications";
 import { QuestionValidation } from "./questionValidation";
 import {
   CreateQuestionRequest,

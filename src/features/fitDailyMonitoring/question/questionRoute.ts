@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { JwtMiddleware } from "../../middlewares/jwt_middleware";
+import { JwtMiddleware } from "../../../middlewares/jwt_middleware";
 import { QuestionController } from "./questionController";
 
 const questionRoute: Router = Router();

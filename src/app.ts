@@ -9,6 +9,7 @@ import { authRoute } from "./features/auth";
 import { userRoute } from "./features/user-management";
 import { documentRoute } from "./features/documentTransfer";
 import companyRoute from "./features/management-company/companyRoute";
+import { fdmRoute } from "./features/fitDailyMonitoring";
 
 dotenv.config();
 const app: Express = express();
@@ -30,6 +31,7 @@ app.use("/auth", authRoute)
 app.use("/user", userRoute);
 app.use("/document", documentRoute);
 app.use("/company", companyRoute);
+app.use("/fdm", fdmRoute);
 
 app.use(ErrorMiddleware.notFound);
 app.use(ErrorMiddleware.returnError);
