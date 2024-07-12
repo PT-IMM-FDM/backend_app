@@ -11,6 +11,10 @@ export class JobPositionValidation {
   });
 
   static readonly DELETE_JOB_POSITION: ZodType = z.object({
-    job_position_id: z.number().int().positive("Job Position ID must be positive"),
+    job_position_id: z
+      .number()
+      .int()
+      .positive("Job Position ID must be positive")
+      .array(),
   });
 }

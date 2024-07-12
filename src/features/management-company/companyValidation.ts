@@ -11,6 +11,10 @@ export class CompanyValidation {
   });
 
   static readonly DELETE_COMPANY: ZodType = z.object({
-    company_id: z.number().int().positive("Company ID must be positive"),
+    company_id: z
+      .number()
+      .int()
+      .positive("Company ID must be positive")
+      .array(),
   });
 }

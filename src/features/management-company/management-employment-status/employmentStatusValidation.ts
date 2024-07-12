@@ -14,6 +14,7 @@ export class EmploymentStatusValidation {
     employment_status_id: z
       .number()
       .int()
-      .positive("Employment Status ID must be positive"),
+      .positive("Employment Status ID must be positive")
+      .array(),
   });
 }
