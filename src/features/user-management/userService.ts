@@ -127,7 +127,6 @@ export class UserService {
         full_name: data.name
           ? { contains: data.name, mode: "insensitive" }
           : undefined,
-        deleted_at: null,
       },
       select: formatUserResponseData,
     });
