@@ -25,7 +25,11 @@ export class CompanyService {
   }
 
   static async getCompany() {
-    const company = await prisma.company.findMany();
+    const company = await prisma.company.findMany({
+      where: {
+        deleted_at: null,
+      },
+    });
     return company;
   }
 
@@ -51,12 +55,27 @@ export class CompanyService {
       CompanyValidation.DELETE_COMPANY,
       data
     );
-    const company = await prisma.company.delete({
-      where: {
-        company_id: validateData.company_id,
-      },
-    });
 
-    return company;
+    const arrayCompanys = Array.isArray(validateData.company_id)
+      ? validateData.company_id
+      : [validateData.company_id];
+
+    if (arrayCompanys.length) {
+      await prisma.$transaction(async (prisma) => {
+        for (const CompanyId of arrayCompanys) {
+          const Company = await prisma.company.findUnique({
+            where: { company_id: CompanyId },
+            select: { deleted_at: true },
+          });
+
+          if (Company && Company.deleted_at === null) {
+            await prisma.company.update({
+              where: { company_id: CompanyId },
+              data: { deleted_at: new Date() },
+            });
+          }
+        }
+      });
+    }
   }
 }

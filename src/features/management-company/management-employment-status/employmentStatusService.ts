@@ -25,7 +25,11 @@ export class EmploymentStatusService {
   }
 
   static async getEmploymentStatus() {
-    const employmentStatus = await prisma.employmentStatus.findMany();
+    const employmentStatus = await prisma.employmentStatus.findMany({
+      where: {
+        deleted_at: null,
+      },
+    });
     return employmentStatus;
   }
 
@@ -51,12 +55,26 @@ export class EmploymentStatusService {
       EmploymentStatusValidation.DELETE_EMPLOYMENT_STATUS,
       data
     );
-    const employmentStatus = await prisma.employmentStatus.delete({
-      where: {
-        employment_status_id: validateData.employment_status_id,
-      },
-    });
+    const arrayEmploymentStatuses = Array.isArray(validateData.employment_status_id)
+      ? validateData.employment_status_id
+      : [validateData.employment_status_id];
 
-    return employmentStatus;
+    if (arrayEmploymentStatuses.length) {
+      await prisma.$transaction(async (prisma) => {
+        for (const EmploymentStatusId of arrayEmploymentStatuses) {
+          const employmentStatus = await prisma.employmentStatus.findUnique({
+            where: { employment_status_id: EmploymentStatusId },
+            select: { deleted_at: true },
+          });
+
+          if (employmentStatus && employmentStatus.deleted_at === null) {
+            await prisma.employmentStatus.update({
+              where: { employment_status_id: EmploymentStatusId },
+              data: { deleted_at: new Date() },
+            });
+          }
+        }
+      });
+    }
   }
 }

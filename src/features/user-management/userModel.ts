@@ -2,7 +2,7 @@ import { User } from "@prisma/client";
 
 export type CreateUserRequest = Omit<
   User,
-  "user_id"| "password" | "created_at" | "deleted_at" | "email" 
+  "user_id" | "password" | "created_at" | "deleted_at" | "email" | "is_active"
 >;
 
 export type CreateUserResponse = GetUserResponse;
@@ -13,6 +13,7 @@ export type GetUserRequest = {
   employment_status?: string;
   department?: string;
   name?: string;
+  is_active?: boolean;
 };
 
 export type GetUserResponse = {
@@ -45,11 +46,11 @@ export type UpdateUserRequest = {
   employment_status_id?: number;
   department_id?: number;
   role_id?: number;
-}
+  is_active?: boolean;
+};
 
 export type UpdateUserResponse = User;
 
 export type DeleteUserRequest = {
   user_id: string[];
-}
-
+};

@@ -42,8 +42,9 @@ let formatUserResponseData = {
   role: {
     select: {
       name: true,
-    }
-  }
+    },
+  },
+  is_active: true,
 };
 
 export class UserService {
@@ -69,9 +70,12 @@ export class UserService {
         "PHONE_NUMBER_EXISTS"
       );
     }
-    
-    const generate_password = await password_generator(data.full_name, data.birth_date);
-    
+
+    const generate_password = await password_generator(
+      data.full_name,
+      data.birth_date
+    );
+
     const createUser = await prisma.user.create({
       data: {
         company_id: validateData.company_id,
@@ -127,6 +131,7 @@ export class UserService {
         full_name: data.name
           ? { contains: data.name, mode: "insensitive" }
           : undefined,
+        is_active: data.is_active,
         deleted_at: null,
       },
       select: formatUserResponseData,
@@ -142,7 +147,6 @@ export class UserService {
     const updateUser = await prisma.user.update({
       where: {
         user_id: validateData.user_id,
-        deleted_at: null,
       },
       data: {
         company_id: validateData.company_id,
@@ -154,6 +158,7 @@ export class UserService {
         email: validateData.email,
         birth_date: validateData.birth_date,
         role_id: validateData.role_id,
+        is_active: validateData.is_active,
       },
     });
 

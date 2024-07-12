@@ -11,6 +11,10 @@ export class DepartmentValidation {
   });
 
   static readonly DELETE_DEPARTMENT: ZodType = z.object({
-    department_id: z.number().int().positive("Department ID must be positive"),
+    department_id: z
+      .number()
+      .int()
+      .positive("Department ID must be positive")
+      .array(),
   });
 }

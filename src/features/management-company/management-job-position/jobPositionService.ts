@@ -25,7 +25,11 @@ export class JobPositionService {
   }
 
   static async getJobPosition() {
-    const jobPosition = await prisma.jobPosition.findMany();
+    const jobPosition = await prisma.jobPosition.findMany({
+      where: {
+        deleted_at: null,
+      },
+    });
     return jobPosition;
   }
 
@@ -51,12 +55,26 @@ export class JobPositionService {
       JobPositionValidation.DELETE_JOB_POSITION,
       data
     );
-    const jobPosition = await prisma.jobPosition.delete({
-      where: {
-        job_position_id: validateData.job_position_id,
-      },
-    });
+    const arrayJobPositions = Array.isArray(validateData.job_position_id)
+      ? validateData.job_position_id
+      : [validateData.job_position_id];
+    console.log(arrayJobPositions)
+    if (arrayJobPositions.length) {
+      await prisma.$transaction(async (prisma) => {
+        for (const jobPositionId of arrayJobPositions) {
+          const job_position = await prisma.jobPosition.findUnique({
+            where: { job_position_id: jobPositionId },
+            select: { deleted_at: true },
+          });
 
-    return jobPosition;
+          if (job_position && job_position.deleted_at === null) {
+            await prisma.jobPosition.update({
+              where: { job_position_id: jobPositionId },
+              data: { deleted_at: new Date() },
+            });
+          }
+        }
+      });
+    }
   }
 }
