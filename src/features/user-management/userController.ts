@@ -12,10 +12,10 @@ export class UserController {
         job_position_id,
         employment_status_id,
         department_id,
-        role_id
+        role_id,
       } = req.body;
-      console.log(birth_date)
-      
+      console.log(birth_date);
+
       const createUser = await UserService.createUser({
         full_name,
         phone_number,
@@ -44,6 +44,7 @@ export class UserController {
         employment_status,
         department,
         name,
+        is_active,
       } = req.query;
       const getUsers = await UserService.getUsers({
         company_name: company_name as string,
@@ -51,6 +52,7 @@ export class UserController {
         employment_status: employment_status as string,
         department: department as string,
         name: name as string,
+        is_active: is_active === "true" ? true : false,
       });
       return res.status(200).json({
         success: true,
@@ -72,6 +74,8 @@ export class UserController {
         job_position_id,
         employment_status_id,
         department_id,
+        role_id,
+        is_active,
       } = req.body;
       const updateUser = await UserService.updateUser({
         user_id,
@@ -81,6 +85,8 @@ export class UserController {
         job_position_id,
         employment_status_id,
         department_id,
+        role_id,
+        is_active,
       });
       return res.status(200).json({
         success: true,

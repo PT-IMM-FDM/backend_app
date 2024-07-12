@@ -9,7 +9,7 @@ export class UserValidation {
     role_id: z.number(),
     full_name: z.string(),
     phone_number: z.string(),
-    birth_date: z.date()
+    birth_date: z.date(),
   });
 
   static readonly GET_USER: ZodType = z.object({
@@ -18,6 +18,7 @@ export class UserValidation {
     employment_status: z.string().optional(),
     department: z.string().optional(),
     name: z.string().optional(),
+    is_active: z.boolean().optional(),
   });
 
   static readonly DELETE_USER: ZodType = z.object({
@@ -35,5 +36,6 @@ export class UserValidation {
     phone_number: z.string().optional(),
     email: z.string().optional(),
     birth_date: z.date().optional(),
+    is_active: z.boolean().optional(),
   });
 }
