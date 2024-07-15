@@ -4,20 +4,24 @@ import { QuestionController } from "./questionController";
 
 const questionRoute: Router = Router();
 
-questionRoute.post("/question/create", [
+questionRoute.post("/create", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
   QuestionController.createQuestion,
 ]);
-questionRoute.get("/question/getAll", [
-  JwtMiddleware.verifyToken,
+questionRoute.get("/getAll", [
+  // JwtMiddleware.verifyToken,
+  // JwtMiddleware.adminOrViewer,
   QuestionController.getQuestions,
 ]);
-questionRoute.put("/question/update", [
+questionRoute.put("/update", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
   QuestionController.updateQuestion,
 ]);
-questionRoute.delete("/question/delete", [
+questionRoute.delete("/delete", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
   QuestionController.deleteQuestion,
 ]);
 

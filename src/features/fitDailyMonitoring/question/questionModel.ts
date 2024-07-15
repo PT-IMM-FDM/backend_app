@@ -1,20 +1,25 @@
-import { Question } from "@prisma/client";
+import { Question, QuestionAnswer } from "@prisma/client";
 
 export type CreateQuestionRequest = {
   question: string;
+  answer: string[];
+  value: number[];
 };
-
-export type CreateQuestionResponse = Question;
 
 export type GetQuestionResponse = Question[];
 
 export type UpdateQuestionRequest = {
   question_id: number;
-  question: string;
+  question?: string;
+  question_answer_id?: number[];
+  question_answer?: string[];
+  value?: number[];
 };
 
 export type UpdateQuestionResponse = UpdateQuestionRequest & {
-  old_question: string;
+  old_question?: string;
+  old_answer?: string[];
+  old_value?: number[];
 };
 
 export type DeleteQuestionRequest = {

@@ -4,8 +4,12 @@ import { QuestionService } from "./questionService";
 export class QuestionController {
   static async createQuestion(req: Request, res: Response, next: NextFunction) {
     try {
-      const { question } = req.body;
-      const createQuestion = await QuestionService.createQuestion({ question });
+      const { question, answer, value } = req.body;
+      const createQuestion = await QuestionService.createQuestion({
+        question,
+        answer,
+        value,
+      });
       return res.status(200).json({
         success: true,
         data: createQuestion,
@@ -31,10 +35,13 @@ export class QuestionController {
 
   static async updateQuestion(req: Request, res: Response, next: NextFunction) {
     try {
-      const { question_id, question } = req.body;
+      const { question_id, question, question_answer_id, question_answer, value } = req.body;
       const updateQuestion = await QuestionService.updateQuestion({
         question_id,
         question,
+        question_answer_id,
+        question_answer,
+        value,
       });
       return res.status(200).json({
         success: true,

@@ -4,7 +4,7 @@ import { prisma } from "../../../applications";
 import { QuestionValidation } from "./questionValidation";
 import {
   CreateQuestionRequest,
-  CreateQuestionResponse,
+  GetQuestionResponse,
   UpdateQuestionRequest,
   UpdateQuestionResponse,
   DeleteQuestionRequest,
@@ -12,27 +12,35 @@ import {
 } from "./questionModel";
 
 export class QuestionService {
-  static async createQuestion(
-    data: CreateQuestionRequest
-  ): Promise<CreateQuestionResponse> {
+  static async createQuestion(data: CreateQuestionRequest) {
     const validateData = Validation.validate(
       QuestionValidation.CREATE_QUESTION,
       data
     );
-
-    const createQuestion = await prisma.question.create({
-      data: {
-        question: validateData.question,
-      },
+    await prisma.$transaction(async (prisma) => {
+      const createQuestion = await prisma.question.create({
+        data: {
+          question: validateData.question,
+          question_answer: {
+            createMany: {
+              data: validateData.answer.map((answer, index) => ({
+                question_answer: answer,
+                value: validateData.value[index],
+              })),
+            },
+          },
+        },
+      });
     });
-
-    return createQuestion;
   }
 
-  static async getQuestions(): Promise<CreateQuestionResponse[]> {
+  static async getQuestions(): Promise<GetQuestionResponse> {
     const questions = await prisma.question.findMany({
       where: {
         deleted_at: null,
+      },
+      include: {
+        question_answer: true,
       },
     });
 
@@ -82,9 +90,35 @@ export class QuestionService {
       },
     });
 
+    const findQuestionAnswer = await prisma.questionAnswer.findMany({
+      where: {
+        question_id: validateData.question_id,
+      },
+      select: {
+        question_answer_id: true,
+        question_answer: true,
+        value: true,
+      },
+    });
+
+    if (validateData.question_answer_id && validateData.question_answer && validateData.value) {
+      for (let i = 0; i < validateData.question_answer_id.length; i++) {
+        await prisma.questionAnswer.update({
+          where: {
+            question_answer_id: validateData.question_answer_id[i],
+          },
+          data: {
+            question_answer: validateData.question_answer[i],
+            value: validateData.value[i],
+          },
+        });
+      }
+    }
     return {
       ...validateData,
       old_question: findQuestion.question,
+      old_answer: findQuestionAnswer.map((answer) => answer.question_answer),
+      old_value: findQuestionAnswer.map((value) => value.value),
     };
   }
 
@@ -120,6 +154,16 @@ export class QuestionService {
       },
       data: {
         deleted_at: new Date(),
+        question_answer: {
+          updateMany: {
+            where: {
+              question_id: validateData.question_id,
+            },
+            data: {
+              deleted_at: new Date(),
+            },
+          },
+        },
       },
     });
 
