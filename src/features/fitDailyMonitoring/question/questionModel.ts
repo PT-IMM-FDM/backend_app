@@ -14,12 +14,15 @@ export type UpdateQuestionRequest = {
   question_answer_id?: number[];
   question_answer?: string[];
   value?: number[];
+  add_question_answer?: string[];
+  add_value?: number[];
 };
 
 export type UpdateQuestionResponse = UpdateQuestionRequest & {
   old_question?: string;
   old_answer?: string[];
   old_value?: number[];
+  new_answer?: string[];
 };
 
 export type DeleteQuestionRequest = {

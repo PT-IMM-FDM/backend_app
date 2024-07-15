@@ -114,11 +114,25 @@ export class QuestionService {
         });
       }
     }
+
+    if(validateData.add_question_answer && validateData.add_value){
+      for (let i = 0; i < validateData.add_question_answer.length; i++) {
+        await prisma.questionAnswer.create({
+          data: {
+            question_id: validateData.question_id,
+            question_answer: validateData.add_question_answer[i],
+            value: validateData.add_value[i],
+          },
+        });
+      }
+    }
+
     return {
       ...validateData,
       old_question: findQuestion.question,
       old_answer: findQuestionAnswer.map((answer) => answer.question_answer),
       old_value: findQuestionAnswer.map((value) => value.value),
+      new_answer: validateData.add_question_answer,
     };
   }
 
