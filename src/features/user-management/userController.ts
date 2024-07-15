@@ -14,8 +14,6 @@ export class UserController {
         department_id,
         role_id,
       } = req.body;
-      console.log(birth_date);
-
       const createUser = await UserService.createUser({
         full_name,
         phone_number,
@@ -46,13 +44,18 @@ export class UserController {
         name,
         is_active,
       } = req.query;
+      let is_active_to_boolean
+
+      if(is_active !== undefined){
+        is_active_to_boolean = is_active === "true" ? true : false
+      }
       const getUsers = await UserService.getUsers({
         company_name: company_name as string,
         job_position: job_position as string,
         employment_status: employment_status as string,
         department: department as string,
         name: name as string,
-        is_active: is_active === "true" ? true : false,
+        is_active: is_active_to_boolean,
       });
       return res.status(200).json({
         success: true,
