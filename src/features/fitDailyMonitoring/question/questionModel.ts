@@ -16,6 +16,7 @@ export type UpdateQuestionRequest = {
   value?: number[];
   add_question_answer?: string[];
   add_value?: number[];
+  delete_question_answer?: number[];
 };
 
 export type UpdateQuestionResponse = UpdateQuestionRequest & {

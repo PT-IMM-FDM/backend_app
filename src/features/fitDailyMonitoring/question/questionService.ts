@@ -40,7 +40,11 @@ export class QuestionService {
         deleted_at: null,
       },
       include: {
-        question_answer: true,
+        question_answer: {
+          where: {
+            deleted_at: null,
+          },
+        },
       },
     });
 
@@ -122,6 +126,19 @@ export class QuestionService {
             question_id: validateData.question_id,
             question_answer: validateData.add_question_answer[i],
             value: validateData.add_value[i],
+          },
+        });
+      }
+    }
+
+    if(validateData.delete_question_answer){
+      for (let i = 0; i < validateData.delete_question_answer.length; i++) {
+        await prisma.questionAnswer.update({
+          where: {
+            question_answer_id: validateData.delete_question_answer[i],
+          },
+          data: {
+            deleted_at: new Date(),
           },
         });
       }

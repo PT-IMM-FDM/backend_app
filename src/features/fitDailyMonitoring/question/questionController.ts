@@ -35,13 +35,25 @@ export class QuestionController {
 
   static async updateQuestion(req: Request, res: Response, next: NextFunction) {
     try {
-      const { question_id, question, question_answer_id, question_answer, value } = req.body;
+      const {
+        question_id,
+        question,
+        question_answer_id,
+        question_answer,
+        value,
+        add_question_answer,
+        add_value,
+        delete_question_answer,
+      } = req.body;
       const updateQuestion = await QuestionService.updateQuestion({
         question_id,
         question,
         question_answer_id,
         question_answer,
         value,
+        add_question_answer,
+        add_value,
+        delete_question_answer,
       });
       return res.status(200).json({
         success: true,
