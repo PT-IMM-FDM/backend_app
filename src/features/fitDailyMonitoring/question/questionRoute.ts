@@ -10,8 +10,8 @@ questionRoute.post("/create", [
   QuestionController.createQuestion,
 ]);
 questionRoute.get("/getAll", [
-  // JwtMiddleware.verifyToken,
-  // JwtMiddleware.adminOrViewer,
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOrViewer,
   QuestionController.getQuestions,
 ]);
 questionRoute.put("/update", [
