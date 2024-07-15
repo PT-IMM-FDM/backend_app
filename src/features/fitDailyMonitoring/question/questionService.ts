@@ -23,7 +23,7 @@ export class QuestionService {
           question: validateData.question,
           question_answer: {
             createMany: {
-              data: validateData.answer.map((answer, index) => ({
+              data: validateData.question_answer.map((answer, index) => ({
                 question_answer: answer,
                 value: validateData.value[index],
               })),

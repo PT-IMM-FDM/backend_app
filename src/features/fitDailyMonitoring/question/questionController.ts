@@ -4,10 +4,10 @@ import { QuestionService } from "./questionService";
 export class QuestionController {
   static async createQuestion(req: Request, res: Response, next: NextFunction) {
     try {
-      const { question, answer, value } = req.body;
+      const { question, question_answer, value } = req.body;
       const createQuestion = await QuestionService.createQuestion({
         question,
-        answer,
+        question_answer,
         value,
       });
       return res.status(200).json({

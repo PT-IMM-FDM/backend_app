@@ -2,7 +2,7 @@ import { Question, QuestionAnswer } from "@prisma/client";
 
 export type CreateQuestionRequest = {
   question: string;
-  answer: string[];
+  question_answer: string[];
   value: number[];
 };
 
