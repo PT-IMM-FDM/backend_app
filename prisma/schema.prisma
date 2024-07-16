@@ -122,6 +122,11 @@ model ResponseUser {
 model Attendance_health_result {
   attendance_health_result_id Int      @id @default(autoincrement())
   user_id                     String
+  attendance_status           String
+  work_duration_plan          String
+  shift                       Boolean
+  is_driver                   Boolean
+  vehicle_hull_number         String?
   user                        User     @relation(fields: [user_id], references: [user_id])
   result                      Result
   recomendation               String
