@@ -18,14 +18,14 @@ model User {
   job_position_id          Int
   employment_status_id     Int
   department_id            Int
-  role_id                  Int                        
+  role_id                  Int
   is_active                Boolean                    @default(true)
   job_position             JobPosition                @relation(fields: [job_position_id], references: [job_position_id])
   employment_status        EmploymentStatus           @relation(fields: [employment_status_id], references: [employment_status_id])
   department               Department                 @relation(fields: [department_id], references: [department_id])
   company                  Company                    @relation(fields: [company_id], references: [company_id])
   role                     Role                       @relation(fields: [role_id], references: [role_id])
-  Answer                   Answer[]
+  ResponseUser             ResponseUser[]
   Attendance_health_result Attendance_health_result[]
   created_at               DateTime                   @default(now())
   deleted_at               DateTime?
@@ -34,80 +34,100 @@ model User {
 }
 
 model Company {
-  company_id Int     @id @default(autoincrement())
+  company_id Int       @id @default(autoincrement())
   name       String
   users      User[]
-  created_at DateTime @default(now())
+  created_at DateTime  @default(now())
   deleted_at DateTime?
 
   @@map("companies")
 }
 
 model JobPosition {
-  job_position_id Int     @id @default(autoincrement())
+  job_position_id Int       @id @default(autoincrement())
   name            String
   users           User[]
-  created_at      DateTime @default(now())
+  created_at      DateTime  @default(now())
   deleted_at      DateTime?
 
   @@map("job_positions")
 }
 
 model EmploymentStatus {
-  employment_status_id Int     @id @default(autoincrement())
+  employment_status_id Int       @id @default(autoincrement())
   name                 String
   users                User[]
-  created_at           DateTime @default(now())
+  created_at           DateTime  @default(now())
   deleted_at           DateTime?
 
   @@map("employment_statuses")
 }
 
 model Department {
-  department_id Int     @id @default(autoincrement())
+  department_id Int       @id @default(autoincrement())
   name          String
   users         User[]
-  created_at    DateTime @default(now())
+  created_at    DateTime  @default(now())
   deleted_at    DateTime?
 
   @@map("departments")
 }
 
 model Role {
-  role_id Int     @id @default(autoincrement())
-  name    String
-  users        User[]
-  created_at   DateTime @default(now())
+  role_id    Int      @id @default(autoincrement())
+  name       String
+  users      User[]
+  created_at DateTime @default(now())
 
   @@map("roles")
 }
 
 model Question {
-  question_id Int      @id @default(autoincrement())
-  question    String
-  answers     Answer[]
-  created_at  DateTime @default(now())
-  deleted_at  DateTime?
+  question_id     Int              @id @default(autoincrement())
+  question        String
+  question_answer QuestionAnswer[]
+  response_user   ResponseUser[]
+  created_at      DateTime         @default(now())
+  deleted_at      DateTime?
 
   @@map("question")
 }
 
-model Answer {
-  answer_id   Int      @id @default(autoincrement())
-  user_id     String
-  user        User     @relation(fields: [user_id], references: [user_id])
-  answer      Int
-  question_id Int
-  question    Question @relation(fields: [question_id], references: [question_id])
-  created_at  DateTime @default(now())
+model QuestionAnswer {
+  question_answer_id Int            @id @default(autoincrement())
+  question_answer    String
+  value              Int
+  question_id        Int
+  response_user      ResponseUser[]
+  question           Question       @relation(fields: [question_id], references: [question_id])
+  created_at         DateTime       @default(now())
+  deleted_at         DateTime?
 
-  @@map("answers")
+  @@map("question_answer")
+}
+
+model ResponseUser {
+  response_user_id   Int            @id @default(autoincrement())
+  user_id            String
+  question_id        Int
+  question_answer_id Int
+  user               User           @relation(fields: [user_id], references: [user_id])
+  question           Question       @relation(fields: [question_id], references: [question_id])
+  question_answer    QuestionAnswer @relation(fields: [question_answer_id], references: [question_answer_id])
+  created_at         DateTime       @default(now())
+
+  @@map("response")
 }
 
 model Attendance_health_result {
-  attendance_health_result_id Int    @id @default(autoincrement())
+  attendance_health_result_id Int      @id @default(autoincrement())
   user_id                     String
-  user                        User   @relation(fields: [user_id], references: [user_id])
+  attendance_status           String
+  work_duration_plan          String
+  shift                       Boolean
+  is_driver                   Boolean
+  vehicle_hull_number         String?
+  user                        User     @relation(fields: [user_id], references: [user_id])
   result                      Result
   recomendation               String
   created_at                  DateTime @default(now())

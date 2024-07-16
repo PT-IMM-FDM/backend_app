@@ -1,23 +1,26 @@
 import { Router } from "express";
-import { JwtMiddleware } from "../../middlewares/jwt_middleware";
+import { JwtMiddleware } from "../../../middlewares/jwt_middleware";
 import { QuestionController } from "./questionController";
 
 const questionRoute: Router = Router();
 
-questionRoute.post("/question/create", [
+questionRoute.post("/create", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
   QuestionController.createQuestion,
 ]);
-questionRoute.get("/question/getAll", [
+questionRoute.get("/getAll", [
   JwtMiddleware.verifyToken,
   QuestionController.getQuestions,
 ]);
-questionRoute.put("/question/update", [
+questionRoute.put("/update", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
   QuestionController.updateQuestion,
 ]);
-questionRoute.delete("/question/delete", [
+questionRoute.delete("/delete", [
   JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
   QuestionController.deleteQuestion,
 ]);
 
