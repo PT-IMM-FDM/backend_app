@@ -21,26 +21,31 @@ let formatUserResponseData = {
   email: true,
   job_position: {
     select: {
+      job_position_id: true,
       name: true,
     },
   },
   department: {
     select: {
+      department_id: true,
       name: true,
     },
   },
   company: {
     select: {
+      company_id: true,
       name: true,
     },
   },
   employment_status: {
     select: {
+      employment_status_id: true,
       name: true,
     },
   },
   role: {
     select: {
+      role_id: true,
       name: true,
     },
   },
@@ -96,25 +101,25 @@ export class UserService {
   static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
     const CompanyId = await prisma.company.findMany({
       where: {
-        name: { contains: data.company_name, mode: "insensitive" },
+        name: { in: data.company_name, mode: "insensitive" },
       },
     });
 
     const jobPositionId = await prisma.jobPosition.findMany({
       where: {
-        name: { contains: data.job_position, mode: "insensitive" },
+        name: { in: data.job_position, mode: "insensitive" },
       },
     });
 
     const employmentStatusId = await prisma.employmentStatus.findMany({
       where: {
-        name: { contains: data.employment_status, mode: "insensitive" },
+        name: { in: data.employment_status, mode: "insensitive" },
       },
     });
 
     const departmentId = await prisma.department.findMany({
       where: {
-        name: { contains: data.department, mode: "insensitive" },
+        name: { in: data.department, mode: "insensitive" },
       },
     });
 
@@ -160,6 +165,7 @@ export class UserService {
         role_id: validateData.role_id,
         is_active: validateData.is_active,
       },
+      select: formatUserResponseData,
     });
 
     return updateUser;
