@@ -43,10 +43,10 @@ export class AuthService {
 
     if (!userData) {
       throw new ErrorResponse(
-        "Invalid email or password",
+        "Invalid Email or Phone Number",
         401,
         ["email", "password"],
-        "INVALID_EMAIL_OR_PASSWORD"
+        "INVALID_EMAIL_OR_PHONE_NUMBER"
       );
     }
 
@@ -57,10 +57,10 @@ export class AuthService {
 
     if (!isPasswordMatch) {
       throw new ErrorResponse(
-        "Invalid email or password",
+        "Invalid Password",
         401,
         ["email", "password"],
-        "INVALID_EMAIL_OR_PASSWORD"
+        "INVALID_PASSWORD"
       );
     }
 
