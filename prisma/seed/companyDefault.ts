@@ -1,7 +1,6 @@
 export const companyDefault = [
   {
     name: "CV. Afifa",
-    phone_number: "0813-4717-0000",
   },
   {
     name: "CV. Alaviya",
