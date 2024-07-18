@@ -1,6 +1,7 @@
 export const companyDefault = [
   {
     name: "CV. Afifa",
+    phone_number: "0813-4717-0000",
   },
   {
     name: "CV. Alaviya",
@@ -106,5 +107,35 @@ export const companyDefault = [
   },
   {
     name: "RUMAH SAKIT ISLAM BONTANG",
+  },
+  {
+    name: "PT. Starcom Solusindo",
+  },
+  {
+    name: "PT. Titian Enggang Mahakam",
+  },
+  { 
+    name: "PT. Tonisko Tribuana Energi" 
+  },
+  {
+    name: "CV. Wal Ikram"
+  },
+  {
+    name: "PT. Wasco (Widya Sapta Contractor)"
+  },
+  {
+    name: "PT. Borneo Jawa Makmur"
+  },
+  {
+    name: "PT. Armindo Prima"
+  },
+  {
+    name: "PKL"
+  },
+  {
+    name: "PT. CMP (Comindo Mitra Perkasa)"
+  },
+  {
+    name: "CV. Vuma Berkah Jaya"
   },
 ];
