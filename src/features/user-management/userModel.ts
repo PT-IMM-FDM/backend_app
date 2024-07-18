@@ -8,10 +8,10 @@ export type CreateUserRequest = Omit<
 export type CreateUserResponse = GetUserResponse;
 
 export type GetUserRequest = {
-  company_name?: string;
-  job_position?: string;
-  employment_status?: string;
-  department?: string;
+  company_name?: string[];
+  job_position?: string[];
+  employment_status?: string[];
+  department?: string[];
   name?: string;
   is_active?: boolean;
 };
@@ -22,15 +22,23 @@ export type GetUserResponse = {
   phone_number: string;
   birth_date: Date;
   company: {
+    company_id: number;
     name: string;
   };
   job_position: {
+    job_position_id: number;
     name: string;
   };
   employment_status: {
+    employment_status_id: number;
     name: string;
   };
   department: {
+    department_id: number;
+    name: string;
+  };
+  role: {
+    role_id: number;
     name: string;
   };
 };
@@ -49,7 +57,7 @@ export type UpdateUserRequest = {
   is_active?: boolean;
 };
 
-export type UpdateUserResponse = User;
+export type UpdateUserResponse = GetUserResponse;
 
 export type DeleteUserRequest = {
   user_id: string[];

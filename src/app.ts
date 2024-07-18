@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cron from "node-cron";
+import { client } from "./utils";
 import { ErrorMiddleware } from "./middlewares";
 import { loggerMiddleware } from "./middlewares/loggerCLI";
 import { authRoute } from "./features/auth";
@@ -13,6 +14,7 @@ import { fdmRoute } from "./features/fitDailyMonitoring";
 
 dotenv.config();
 const app: Express = express();
+const whatsapp = client.initialize()
 
 cron.schedule("0 0 * * *", async () => {
   // await UserFormMiddleware.dailyCheckExpiredPremiumPackage()

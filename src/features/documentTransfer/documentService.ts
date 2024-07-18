@@ -126,6 +126,9 @@ export class DocumentService {
 
     for (let i = 2; i < usersData.length; i++) {
       const user = usersData[i] as { [key: number]: any };
+      if (user[1] === undefined) {
+        break;
+      }
 
       const company = await prisma.company.findFirst({
         where: {
@@ -168,7 +171,7 @@ export class DocumentService {
         role_id: 3,
       };
 
-      await prisma.user.createMany({
+      await prisma.user.create({
         data: userData,
       });
     }
@@ -190,44 +193,51 @@ export class DocumentService {
       { header: "Department", key: "department", width: 20 },
     ];
 
-    const listCompany = await prisma.company.findMany(
-      {
-        select: {
-          name: true,
-        },
-      }
-    );
-    const listJobPosition = await prisma.jobPosition.findMany(
-      {
-        select: {
-          name: true,
-        },
-      }
-    );
-    const listEmploymentStatus = await prisma.employmentStatus.findMany(
-      {
-        select: {
-          name: true,
-        },
-      }
-    );
-    const listDepartment = await prisma.department.findMany(
-      {
-        select: {
-          name: true,
-        },
-      }
-    );
+    const listCompany = await prisma.company.findMany({
+      select: {
+        name: true,
+      },
+    });
+    const listJobPosition = await prisma.jobPosition.findMany({
+      select: {
+        name: true,
+      },
+    });
+    const listEmploymentStatus = await prisma.employmentStatus.findMany({
+      select: {
+        name: true,
+      },
+    });
+    const listDepartment = await prisma.department.findMany({
+      select: {
+        name: true,
+      },
+    });
 
     worksheet.addRow([]);
 
     // Add headers for reference data starting from column J
-    worksheet.getColumn(10).values = ["List Company", ...listCompany.map(company => company.name)];
-    worksheet.getColumn(11).values = ["List Job Position", ...listJobPosition.map(job => job.name)];
-    worksheet.getColumn(12).values = ["List Employment Status", ...listEmploymentStatus.map(status => status.name)];
-    worksheet.getColumn(13).values = ["List Department", ...listDepartment.map(department => department.name)];
+    worksheet.getColumn(10).values = [
+      "List Company",
+      ...listCompany.map((company) => company.name),
+    ];
+    worksheet.getColumn(11).values = [
+      "List Job Position",
+      ...listJobPosition.map((job) => job.name),
+    ];
+    worksheet.getColumn(12).values = [
+      "List Employment Status",
+      ...listEmploymentStatus.map((status) => status.name),
+    ];
+    worksheet.getColumn(13).values = [
+      "List Department",
+      ...listDepartment.map((department) => department.name),
+    ];
 
-    const filePath1 = path.join("./public", "Template Import Data Karyawan.xlsx");
+    const filePath1 = path.join(
+      "./public",
+      "Template Import Data Karyawan.xlsx"
+    );
     const filePath = pathToFileUrl(
       "public/Template Import Data Karyawan.xlsx" || "",
       "localhost:3030"
