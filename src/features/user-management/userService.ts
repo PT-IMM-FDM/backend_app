@@ -12,6 +12,7 @@ import {
   UpdateUserResponse,
 } from "./userModel";
 import { password_generator, hashPassword } from "../../utils";
+import { validate } from "node-cron";
 
 let formatUserResponseData = {
   user_id: true,

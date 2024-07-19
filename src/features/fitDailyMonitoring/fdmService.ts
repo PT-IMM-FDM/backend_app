@@ -27,6 +27,7 @@ export class FdmService {
         },
         result: resultValue,
         user: {
+          user_id: validateData.user_id,
           job_position_id: validateData.job_position_id,
           department_id: validateData.department_id,
           company_id: validateData.company_id,

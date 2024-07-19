@@ -57,6 +57,7 @@ export class UserController {
         department,
         name,
         is_active: is_active_to_boolean,
+        user_id
       });
       return res.status(200).json({
         success: true,
