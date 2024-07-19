@@ -12,6 +12,7 @@ export type GetUserRequest = {
   job_position?: string[];
   employment_status?: string[];
   department?: string[];
+  user_id?: string;
   name?: string;
   is_active?: boolean;
 };

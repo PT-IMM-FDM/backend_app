@@ -43,6 +43,7 @@ export class UserController {
         department,
         name,
         is_active,
+        user_id
       } = req.body;
       let is_active_to_boolean
 

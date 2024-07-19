@@ -137,6 +137,7 @@ export class UserService {
           ? { contains: data.name, mode: "insensitive" }
           : undefined,
         is_active: data.is_active,
+        user_id: data.user_id,
         deleted_at: null,
       },
       select: formatUserResponseData,
