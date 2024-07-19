@@ -122,7 +122,7 @@ export class ResponseUserService {
 
         const descriptionString = descriptions.join("\n");
 
-        await sendMessageFdmUnfit("0811597599", {
+        sendMessageFdmUnfit("0811597599", {
           full_name: user.full_name,
           phone_number: user.phone_number,
           department: user.department.name,
