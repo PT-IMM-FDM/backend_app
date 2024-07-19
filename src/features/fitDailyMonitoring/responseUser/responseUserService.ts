@@ -11,6 +11,15 @@ export class ResponseUserService {
       ResponseUserValidation.CREATE_RESPONSE_USER,
       data
     );
+    const user = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.user_id,
+      },
+    });
+
+    if (!user) {
+      throw new ErrorResponse("User not found", 404, ["user_id"], "NOT_FOUND");
+    }
 
     if (
       validateData.question_answer_id.length !== validateData.question_id.length
@@ -105,14 +114,14 @@ export class ResponseUserService {
       });
 
       if (user && formula_health === "UNFIT") {
-        const descriptions = user.ResponseUser.map(response => {
+        const descriptions = user.ResponseUser.map((response) => {
           const question = response.question.question;
           const answer = response.question_answer.question_answer;
           return `${question} - ${answer}`;
         });
-      
+
         const descriptionString = descriptions.join("\n");
-      
+
         await sendMessageFdmUnfit("0811597599", {
           full_name: user.full_name,
           phone_number: user.phone_number,
@@ -121,6 +130,6 @@ export class ResponseUserService {
         });
       }
     });
-    return formula_health;
+    return { formula_health, recomendation };
   }
 }
