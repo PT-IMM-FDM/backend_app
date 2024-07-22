@@ -9,7 +9,7 @@ import {
 import ExcelJS from "exceljs";
 import fs from "fs";
 import path from "path";
-import { password_generator, pathToFileUrl } from "../../utils";
+import { hashPassword, password_generator, pathToFileUrl } from "../../utils";
 
 export class DocumentService {
   static async exportFileListUsers(data: ExportFileListUsersRequest) {
@@ -159,11 +159,13 @@ export class DocumentService {
         user[3] as Date
       );
 
+      const hashedPassword = await hashPassword(passwordDefault);
+
       const userData = {
         full_name: user[1] as string,
         phone_number: user[2] as string,
         birth_date: user[3] as Date,
-        password: passwordDefault,
+        password: hashedPassword,
         company_id: company?.company_id as number,
         job_position_id: jobPosition?.job_position_id as number,
         employment_status_id: employmentStatus?.employment_status_id as number,
