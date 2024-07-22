@@ -34,6 +34,33 @@ export class FdmService {
           employment_status_id: validateData.employment_status_id,
         },
       },
+      include: {
+        user: {
+          select: {
+            full_name: true,
+            job_position: {
+              select: {
+                name: true,
+              },
+            },
+            department: {
+              select: {
+                name: true,
+              },
+            },
+            company: {
+              select: {
+                name: true,
+              },
+            },
+            employment_status: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
     return fdm;
   }
