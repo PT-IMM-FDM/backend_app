@@ -3,14 +3,24 @@ import { ErrorResponse } from "../../models";
 import { prisma } from "../../applications";
 import { DocumentValidation } from "./documentValidation";
 import {
+  ExportDataFdmRequest,
   ExportFileListUsersRequest,
+  GenerateExcelFdmRequest,
   ImportFileListUsersRequest,
+  ResultKey,
 } from "./documentModel";
 import ExcelJS from "exceljs";
 import fs from "fs";
 import path from "path";
 import { hashPassword, password_generator, pathToFileUrl } from "../../utils";
 
+type ResultEnum = ResultKey;
+
+const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
+  FIT: "FIT",
+  FIT_FOLLOW_UP: "FIT_FOLLOW_UP",
+  UNFIT: "UNFIT",
+};
 export class DocumentService {
   static async exportFileListUsers(data: ExportFileListUsersRequest) {
     const validateData = Validation.validate(
@@ -23,6 +33,18 @@ export class DocumentService {
         created_at: {
           gte: validateData.date_from,
           lte: validateData.date_to,
+        },
+        company: {
+          name: validateData.company,
+        },
+        job_position: {
+          name: validateData.job_position,
+        },
+        department: {
+          name: validateData.department,
+        },
+        employment_status: {
+          name: validateData.employment_status,
         },
       },
       select: {
@@ -53,7 +75,12 @@ export class DocumentService {
     });
 
     if (users.length === 0) {
-      throw new ErrorResponse("No users found", 404);
+      throw new ErrorResponse(
+        "No users found",
+        404,
+        ["No users found"],
+        "NO_USERS_FOUND"
+      );
     }
 
     const excelFile = await this.generateExcelUsers(users);
@@ -89,7 +116,7 @@ export class DocumentService {
 
     const filePath1 = path.join("./public", "Kumpulan Data Karyawan.xlsx");
     const filePath = pathToFileUrl(
-      "/public/Kumpulan data Karyawan.xlsx" || "",
+      "/public/Kumpulan data Karyawan.xlsx" || process.env.API_URL,
       "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);
@@ -196,6 +223,9 @@ export class DocumentService {
     ];
 
     const listCompany = await prisma.company.findMany({
+      where: {
+        deleted_at: null,
+      },
       select: {
         name: true,
       },
@@ -241,7 +271,163 @@ export class DocumentService {
       "Template Import Data Karyawan.xlsx"
     );
     const filePath = pathToFileUrl(
-      "public/Template Import Data Karyawan.xlsx" || "",
+      "public/Template Import Data Karyawan.xlsx" || process.env.API_URL,
+      "localhost:3030"
+    );
+    await workbook.xlsx.writeFile(filePath1);
+
+    return filePath;
+  }
+
+  static async exportDataFdm(data: ExportDataFdmRequest) {
+    let resultValue; // FIT, FIT_FOLLOW_UP, UNFIT
+    if (data.result) {
+      resultValue = resultEnumMapping[data.result as ResultKey];
+    }
+
+    const validateData = Validation.validate(
+      DocumentValidation.GET_DATA_FDM,
+      data
+    );
+
+    const fdm = await prisma.attendance_health_result.findMany({
+      where: {
+        created_at: {
+          gte: validateData.customDateFrom,
+          lte: validateData.customDateTo,
+        },
+        result: resultValue,
+        user: {
+          user_id: validateData.user_id,
+          job_position: {
+            name: { in: validateData.job_position_name },
+          },
+          department: {
+            name: { in: validateData.department_name },
+          },
+          company: {
+            name: { in: validateData.company_name },
+          },
+          employment_status: {
+            name: { in: validateData.employment_status_name },
+          },
+          deleted_at: null,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            full_name: true,
+            phone_number: true,
+            birth_date: true,
+            job_position: {
+              select: {
+                name: true,
+              },
+            },
+            department: {
+              select: {
+                name: true,
+              },
+            },
+            company: {
+              select: {
+                name: true,
+              },
+            },
+            employment_status: {
+              select: {
+                name: true,
+              },
+            },
+            ResponseUser: {
+              select: {
+                question: {
+                  select: {
+                    question: true,
+                  },
+                },
+                question_answer: {
+                  select: {
+                    question_answer: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (fdm.length === 0) {
+      throw new ErrorResponse(
+        "No Data Fit Daily Monitoring found",
+        404,
+        ["No Data Fit Daily Monitoring found"],
+        "NO_DATA_FDM_FOUND"
+      );
+    }
+
+    const excelFile = await this.generateExcelFdm(fdm);
+
+    // return path the file
+    return excelFile;
+  }
+
+  static async generateExcelFdm(fdm: GenerateExcelFdmRequest) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("FDM");
+
+    const userColumns: Partial<ExcelJS.Column>[] = [
+      { header: "Result", key: "result", width: 15 },
+      { header: "Full Name", key: "full_name", width: 25 },
+      { header: "Phone Number", key: "phone_number", width: 15 },
+      { header: "Birth Date", key: "birth_date", width: 15 },
+      { header: "Company", key: "company", width: 15 },
+      { header: "Job Position", key: "job_position", width: 15 },
+      { header: "Employment Status", key: "employment_status", width: 15 },
+      { header: "Department", key: "department", width: 15 },
+    ];
+
+    // Kolom Pertanyaan Dinamis
+    const questionColumns: Partial<ExcelJS.Column>[] = [];
+
+    if (fdm.length > 0 && fdm[0].user.ResponseUser.length > 0) {
+      fdm[0].user.ResponseUser.forEach((response, index) => {
+        if (response.question && response.question.question) {
+          questionColumns.push({
+            header: response.question.question,
+            key: `question_${index + 1}`,
+            width: 15,
+          });
+        }
+      });
+    }
+
+    worksheet.columns = [...userColumns, ...questionColumns];
+
+    fdm.forEach((data) => {
+      const row: { [key: string]: any } = {
+        full_name: data.user.full_name,
+        phone_number: data.user.phone_number,
+        birth_date: data.user.birth_date,
+        company: data.user.company.name,
+        job_position: data.user.job_position.name,
+        employment_status: data.user.employment_status.name,
+        department: data.user.department.name,
+        result: data.result,
+      };
+
+      data.user.ResponseUser.forEach((response, index) => {
+        row[`question_${index + 1}`] = response.question_answer.question_answer;
+      });
+
+      worksheet.addRow(row);
+    });
+
+    const filePath1 = path.join("./public", "Export Data FDM Karyawan.xlsx");
+    const filePath = pathToFileUrl(
+      "public/Export Data FDM Karyawan.xlsx" || process.env.API_URL,
       "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);

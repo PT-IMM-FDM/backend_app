@@ -3,7 +3,7 @@ import qrcode from "qrcode-terminal";
 import { logger } from "../applications";
 import { dataFdmTodayReport, dataFdmUnfit } from "../models/whatsapp_message";
 
-export const client = new Client({
+export const clientWhatsapp = new Client({
   authStrategy: new LocalAuth(),
   restartOnAuthFail: true,
   puppeteer: {
@@ -15,11 +15,11 @@ export const client = new Client({
   },
 });
 
-client.on("qr", (qr) => {
+clientWhatsapp.on("qr", (qr) => {
   qrcode.generate(qr, { small: true });
 });
 
-client.on("ready", () => {
+clientWhatsapp.on("ready", () => {
   console.log("Client is ready!");
   logger.info(`Client is ready! || ${new Date()}`);
 });
@@ -29,11 +29,11 @@ const sendMessage = async (phone_number: string, message: string) => {
     let phone_numberNew;
     if (phone_number.startsWith("0")) {
       phone_numberNew = phone_number.substring(1);
-      const chat = await client.getChatById(`62${phone_numberNew}@c.us`);
+      const chat = await clientWhatsapp.getChatById(`62${phone_numberNew}@c.us`);
       await chat.sendMessage(message);
     } else {
       phone_numberNew = phone_number;
-      const chat = await client.getChatById(`${phone_numberNew}@c.us`);
+      const chat = await clientWhatsapp.getChatById(`${phone_numberNew}@c.us`);
       await chat.sendMessage(message);
     }
   } catch (error) {
