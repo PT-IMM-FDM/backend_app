@@ -32,6 +32,7 @@ export class FdmService {
           department_id: validateData.department_id,
           company_id: validateData.company_id,
           employment_status_id: validateData.employment_status_id,
+          deleted_at: null,
         },
       },
     });
