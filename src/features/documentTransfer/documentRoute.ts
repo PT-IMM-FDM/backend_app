@@ -24,4 +24,10 @@ documentRoute.get("/template-users", [
   DocumentController.templateFileListUsers,
 ]);
 
+documentRoute.post("/export-fdm", [
+  // JwtMiddleware.verifyToken,
+  // JwtMiddleware.adminOrViewer,
+  DocumentController.exportDataFdm,
+]);
+
 export default documentRoute;

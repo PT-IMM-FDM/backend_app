@@ -57,7 +57,48 @@ export class DocumentController {
         success: true,
         data: file,
         message: "Template file list users",
-      })
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async exportDataFdm(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        result,
+        customDateFrom,
+        customDateTo,
+        user_id,
+        job_position_name,
+        department_name,
+        company_name,
+        employment_status_name,
+      } = req.body;
+      let startDate;
+      let endDate;
+      if (customDateFrom && customDateTo) {
+        startDate = new Date(customDateFrom);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(customDateTo);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      const file = await DocumentService.exportDataFdm({
+        result,
+        customDateFrom: startDate,
+        customDateTo: endDate,
+        user_id,
+        job_position_name,
+        department_name,
+        company_name,
+        employment_status_name,
+      });
+      res.status(200).json({
+        success: true,
+        data: file,
+        message: "Export file FDM",
+      });
     } catch (error) {
       next(error);
     }
