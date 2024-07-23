@@ -221,8 +221,8 @@ export class DocumentService {
     ];
 
     const listCompany = await prisma.company.findMany({
-      where:{
-        deleted_at: null
+      where: {
+        deleted_at: null,
       },
       select: {
         name: true,
@@ -386,10 +386,10 @@ export class DocumentService {
       { header: "Employment Status", key: "employment_status", width: 15 },
       { header: "Department", key: "department", width: 15 },
     ];
-  
+
     // Kolom Pertanyaan Dinamis
     const questionColumns: Partial<ExcelJS.Column>[] = [];
-  
+
     if (fdm.length > 0 && fdm[0].user.ResponseUser.length > 0) {
       fdm[0].user.ResponseUser.forEach((response, index) => {
         if (response.question && response.question.question) {
@@ -402,7 +402,7 @@ export class DocumentService {
       });
     }
 
-    worksheet.columns = [...userColumns, ...questionColumns];  
+    worksheet.columns = [...userColumns, ...questionColumns];
 
     fdm.forEach((data) => {
       const row: { [key: string]: any } = {
@@ -419,14 +419,11 @@ export class DocumentService {
       data.user.ResponseUser.forEach((response, index) => {
         row[`question_${index + 1}`] = response.question_answer.question_answer;
       });
-  
+
       worksheet.addRow(row);
     });
 
-    const filePath1 = path.join(
-      "./public",
-      "Export Data FDM Karyawan.xlsx"
-    );
+    const filePath1 = path.join("./public", "Export Data FDM Karyawan.xlsx");
     const filePath = pathToFileUrl(
       "public/Export Data FDM Karyawan.xlsx" || process.env.API_URL,
       "localhost:3030"
