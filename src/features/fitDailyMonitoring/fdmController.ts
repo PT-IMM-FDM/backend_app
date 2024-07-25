@@ -37,16 +37,24 @@ const parseArrayParam = (param: any): number[] | undefined => {
 export class FdmController {
   static async getFDM(req: Request, res: Response, next: NextFunction) {
     try {
+      /*
+      jpid = job_position_id
+      esid = employment_status_id
+      cid = company_id
+      did = department_id
+      uid = user_id 
+      ahrid = attendance_health_result_id
+      */
       const {
         startDate,
         endDate,
-        user_id,
-        job_position_id,
-        employment_status_id,
-        company_id,
-        department_id,
+        uid,
+        jpid,
+        esid,
+        cid,
+        did,
         result,
-        attendance_health_result_id,
+        ahrid,
       } = req.query;
 
       let formattedStartDate;
@@ -63,13 +71,13 @@ export class FdmController {
       const getFDM = await FdmService.getFDM({
         startDate: formattedStartDate,
         endDate: formattedEndDate,
-        user_id: user_id as string,
-        job_position_id: parseArrayParam(job_position_id),
-        employment_status_id: parseArrayParam(employment_status_id),
-        company_id: parseArrayParam(company_id),
-        department_id: parseArrayParam(department_id),
+        user_id: uid as string,
+        job_position_id: parseArrayParam(jpid),
+        employment_status_id: parseArrayParam(esid),
+        company_id: parseArrayParam(cid),
+        department_id: parseArrayParam(did),
         result: result as string,
-        attendance_health_result_id: Number(attendance_health_result_id),
+        attendance_health_result_id: Number(ahrid),
       });
 
       return res.status(200).json({
