@@ -38,4 +38,9 @@ export class UserValidation {
     birth_date: z.date().optional(),
     is_active: z.boolean().optional(),
   });
+  
+  static readonly UPDATE_PASSWORD: ZodType = z.object({
+    old_password: z.string().min(8, "Password must be at least 8 characters"),
+    new_password: z.string().min(8, "Password must be at least 8 characters"),
+  });
 }

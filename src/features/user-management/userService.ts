@@ -8,10 +8,11 @@ import {
   DeleteUserRequest,
   GetUserRequest,
   GetUserResponse,
+  UpdatePassword,
   UpdateUserRequest,
   UpdateUserResponse,
 } from "./userModel";
-import { password_generator, hashPassword } from "../../utils";
+import { password_generator, hashPassword, comparePassword } from "../../utils";
 let formatUserResponseData = {
   user_id: true,
   full_name: true,
@@ -195,5 +196,47 @@ export class UserService {
         }
       });
     }
+  }
+
+  static async updatePassword(data: UpdatePassword) {
+    const validateData = Validation.validate(UserValidation.UPDATE_PASSWORD, data);
+    const userData = await prisma.user.findUnique({
+      where: {
+        user_id: data.user_id,
+      },
+      select: {
+        password: true,
+      },
+    });
+
+    if (!userData) {
+      throw new ErrorResponse(
+        "User not found",
+        404,
+        ["user_id"],
+        "USER_NOT_FOUND"
+      );
+    }
+
+    const isPasswordMatch = await comparePassword(validateData.old_password, userData.password);
+    if (!isPasswordMatch) {
+      throw new ErrorResponse(
+        "Invalid Old Password",
+        401,
+        ["old_password"],
+        "INVALID_OLD_PASSWORD"
+      );
+    }
+
+    const hashedPassword = await hashPassword(validateData.new_password);
+
+    await prisma.user.update({
+      where: {
+        user_id: data.user_id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
   }
 }
