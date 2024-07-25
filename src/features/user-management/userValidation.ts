@@ -33,7 +33,7 @@ export class UserValidation {
     role_id: z.number().optional(),
     department_id: z.number().optional(),
     full_name: z.string().optional(),
-    phone_number: z.string().optional(),
+    phone_number: z.string().min(5).optional(),
     email: z.string().optional(),
     birth_date: z.date().optional(),
     is_active: z.boolean().optional(),

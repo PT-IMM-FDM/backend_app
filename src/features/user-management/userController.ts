@@ -76,6 +76,7 @@ export class UserController {
       const {
         full_name,
         phone_number,
+        email,
         company_id,
         job_position_id,
         employment_status_id,
@@ -90,6 +91,7 @@ export class UserController {
           user_id,
           full_name,
           phone_number,
+          email
         });
       } else {
         updateUser = await UserService.updateUser({
