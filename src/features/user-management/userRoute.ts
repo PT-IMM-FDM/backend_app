@@ -28,7 +28,7 @@ userRoute.delete("/delete", [
   UserController.deleteUser,
 ]);
 
-userRoute.get("/updatePassword", [
+userRoute.post("/updatePassword", [
   JwtMiddleware.verifyToken,
   UserController.updatePassword,
 ]);
