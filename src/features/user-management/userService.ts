@@ -150,6 +150,22 @@ export class UserService {
   ): Promise<UpdateUserResponse> {
     const validateData = Validation.validate(UserValidation.UPDATE_USER, data);
 
+    const findPhone = await prisma.user.findFirst({
+      where: {
+        phone_number: validateData.phone_number,
+        deleted_at: null,
+      },
+    });
+
+    if(findPhone && findPhone.user_id !== validateData.user_id) {
+      throw new ErrorResponse(
+        "Phone number already exists",
+        400,
+        ["Phone number already exists"],
+        "PHONE_NUMBER_EXISTS"
+      );
+    }
+
     const updateUser = await prisma.user.update({
       where: {
         user_id: validateData.user_id,
