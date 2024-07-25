@@ -72,7 +72,7 @@ export class UserController {
   static async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
       let updateUser
-      let user_id;
+      let user_id = req.body.user_id
       const {
         full_name,
         phone_number,
@@ -84,21 +84,19 @@ export class UserController {
         role_id,
         is_active,
       } = req.body;
-
       if (user_id === undefined) {
-        user_id = res.locals.user.user_id;
         updateUser = await UserService.updateUser({
-          user_id,
+          user_id: res.locals.user.user_id,
           full_name,
           phone_number,
           email
         });
-      } else {
-        user_id = req.body.user_id
+      } else if (user_id){
         updateUser = await UserService.updateUser({
           user_id,
           full_name,
           phone_number,
+          email,
           company_id,
           job_position_id,
           employment_status_id,
