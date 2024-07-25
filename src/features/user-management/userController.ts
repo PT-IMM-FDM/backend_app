@@ -71,6 +71,7 @@ export class UserController {
 
   static async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
+      let updateUser
       let user_id = req.body.user_id;
       const {
         full_name,
@@ -85,19 +86,25 @@ export class UserController {
 
       if (user_id === undefined) {
         user_id = res.locals.user.user_id;
+        updateUser = await UserService.updateUser({
+          user_id,
+          full_name,
+          phone_number,
+        });
+      } else {
+        updateUser = await UserService.updateUser({
+          user_id,
+          full_name,
+          phone_number,
+          company_id,
+          job_position_id,
+          employment_status_id,
+          department_id,
+          role_id,
+          is_active,
+        });
       }
       
-      const updateUser = await UserService.updateUser({
-        user_id,
-        full_name,
-        phone_number,
-        company_id,
-        job_position_id,
-        employment_status_id,
-        department_id,
-        role_id,
-        is_active,
-      });
       return res.status(200).json({
         success: true,
         data: updateUser,
