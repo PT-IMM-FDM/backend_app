@@ -84,7 +84,7 @@ export class UserController {
       } = req.body;
 
       if (user_id === undefined) {
-        user_id = res.locals.user;
+        user_id = res.locals.user.user_id;
       }
       
       const updateUser = await UserService.updateUser({
@@ -123,7 +123,7 @@ export class UserController {
 
   static async updatePassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const user_id = res.locals.user;
+      const user_id = res.locals.user.user_id;
       const { old_password, new_password } = req.body;
       await UserService.updatePassword({ user_id, old_password, new_password });
       return res.status(200).json({
