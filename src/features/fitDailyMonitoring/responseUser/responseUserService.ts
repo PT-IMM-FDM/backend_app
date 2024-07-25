@@ -32,7 +32,6 @@ export class ResponseUserService {
       );
     }
 
-    console.log(validateData);
     const values = await prisma.questionAnswer.findMany({
       where: {
         question_answer_id: { in: validateData.question_answer_id },
