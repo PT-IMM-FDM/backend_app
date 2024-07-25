@@ -166,6 +166,22 @@ export class UserService {
       );
     }
 
+    const findEmail = await prisma.user.findFirst({
+      where: {
+        email: validateData.email,
+        deleted_at: null,
+      },
+    });
+
+    if(findEmail && findEmail.user_id !== validateData.user_id) {
+      throw new ErrorResponse(
+        "Email already exists",
+        400,
+        ["Email already exists"],
+        "EMAIL_EXISTS"
+      );
+    }
+
     const updateUser = await prisma.user.update({
       where: {
         user_id: validateData.user_id,
