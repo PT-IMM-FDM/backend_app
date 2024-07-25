@@ -19,7 +19,7 @@ export class QuestionController {
       next(error);
     }
   }
-
+  // For admin
   static async getQuestions(req: Request, res: Response, next: NextFunction) {
     try {
       const getQuestions = await QuestionService.getQuestions();
@@ -28,6 +28,38 @@ export class QuestionController {
         data: getQuestions,
         message: "Get All questions successfully",
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+  // for user
+  static async getForm(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { user_id } = res.locals.user;
+      const getForm = await QuestionService.getForm(user_id);
+      return res.status(200).json({
+        success: true,
+        data: getForm,
+        message: "Get form successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async isFilled(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { user_id } = res.locals.user;
+      const isFilled = await QuestionService.isFilled(user_id);
+      if (isFilled !== undefined) {
+        return res.status(200).json({
+          success: true,
+          data: isFilled,
+          message: "Form has been filled today",
+        });
+      } else {
+        next()
+      }
     } catch (error) {
       next(error);
     }

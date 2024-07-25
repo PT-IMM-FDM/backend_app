@@ -58,7 +58,6 @@ export class JobPositionService {
     const arrayJobPositions = Array.isArray(validateData.job_position_id)
       ? validateData.job_position_id
       : [validateData.job_position_id];
-    console.log(arrayJobPositions)
     if (arrayJobPositions.length) {
       await prisma.$transaction(async (prisma) => {
         for (const jobPositionId of arrayJobPositions) {

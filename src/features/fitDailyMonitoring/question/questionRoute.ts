@@ -23,5 +23,10 @@ questionRoute.delete("/delete", [
   JwtMiddleware.adminOnly,
   QuestionController.deleteQuestion,
 ]);
+questionRoute.get("/form", [
+  JwtMiddleware.verifyToken,
+  QuestionController.isFilled,
+  QuestionController.getForm,
+]);
 
 export default questionRoute;
