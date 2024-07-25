@@ -22,18 +22,19 @@ export class FdmService {
     const fdm = await prisma.attendance_health_result.findMany({
       where: {
         created_at: {
-          gte: validateData.customDateFrom,
-          lte: validateData.customDateTo,
+          gte: validateData.startDate,
+          lte: validateData.endDate,
         },
         result: resultValue,
         user: {
           user_id: validateData.user_id,
-          job_position_id: validateData.job_position_id,
-          department_id: validateData.department_id,
-          company_id: validateData.company_id,
-          employment_status_id: validateData.employment_status_id,
+          job_position_id: {in: validateData.job_position_id},
+          department_id: {in: validateData.department_id},
+          company_id: { in: validateData.company_id },
+          employment_status_id: {in: validateData.employment_status_id},
           deleted_at: null,
         },
+        attendance_health_result_id: validateData.attendance_health_result_id,
       },
       include: {
         user: {
