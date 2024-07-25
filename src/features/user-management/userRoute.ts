@@ -22,13 +22,18 @@ userRoute.put("/update", [
   UserController.updateUser,
 ]);
 
+userRoute.put("/update/me", [
+  JwtMiddleware.verifyToken,
+  UserController.updateUser,
+]);
+
 userRoute.delete("/delete", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOnly,
   UserController.deleteUser,
 ]);
 
-userRoute.post("/updatePassword", [
+userRoute.put("/updatePassword", [
   JwtMiddleware.verifyToken,
   UserController.updatePassword,
 ]);

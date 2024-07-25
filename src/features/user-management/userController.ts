@@ -43,12 +43,12 @@ export class UserController {
         department,
         name,
         is_active,
-        user_id
+        user_id,
       } = req.body;
-      let is_active_to_boolean
+      let is_active_to_boolean;
 
-      if(is_active !== undefined){
-        is_active_to_boolean = is_active === "true" ? true : false
+      if (is_active !== undefined) {
+        is_active_to_boolean = is_active === "true" ? true : false;
       }
       const getUsers = await UserService.getUsers({
         company_name,
@@ -57,7 +57,7 @@ export class UserController {
         department,
         name,
         is_active: is_active_to_boolean,
-        user_id
+        user_id,
       });
       return res.status(200).json({
         success: true,
@@ -71,8 +71,8 @@ export class UserController {
 
   static async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
+      let user_id = req.body.user_id;
       const {
-        user_id,
         full_name,
         phone_number,
         company_id,
@@ -82,6 +82,11 @@ export class UserController {
         role_id,
         is_active,
       } = req.body;
+
+      if (user_id === undefined) {
+        user_id = res.locals.user;
+      }
+      
       const updateUser = await UserService.updateUser({
         user_id,
         full_name,
@@ -120,7 +125,7 @@ export class UserController {
     try {
       const user_id = res.locals.user;
       const { old_password, new_password } = req.body;
-      await UserService.updatePassword({user_id, old_password, new_password });
+      await UserService.updatePassword({ user_id, old_password, new_password });
       return res.status(200).json({
         success: true,
         message: "Password updated successfully",
