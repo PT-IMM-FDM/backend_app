@@ -41,17 +41,17 @@ export class ResponseUserService {
       },
     });
 
-    let formula_health: "FIT" | "FIT_FOLLOW_UP" | "UNFIT" = "FIT";
+    let result: "FIT" | "FIT_FOLLOW_UP" | "UNFIT" = "FIT";
     let recomendation =
       "Tetap semangat! Jaga kesehatan dan terus bekerja dengan baik.";
     const valueSet = new Set(values.map((v) => v.value));
 
     if (valueSet.has(3)) {
-      formula_health = "UNFIT";
+      result = "UNFIT";
       recomendation =
         "Anda tidak fit untuk bekerja. Silahkan istirahat dan periksakan diri ke dokter.";
     } else if (valueSet.has(2)) {
-      formula_health = "FIT_FOLLOW_UP";
+      result = "FIT_FOLLOW_UP";
       recomendation =
         "Anda fit untuk bekerja, namun perlu dilakukan follow up untuk memastikan kondisi kesehatan Anda. Jaga kondisi tubuh Anda. Jika merasa lelah, jangan ragu untuk istirahat sejenak, minum kopi atau lakukan power nap.";
     }
@@ -77,7 +77,7 @@ export class ResponseUserService {
           shift: validateData.shift,
           is_driver: validateData.is_driver,
           vehicle_hull_number: validateData.vehicle_hull_number,
-          result: formula_health, // Ensure this is a valid enum value
+          result: result, // Ensure this is a valid enum value
           recomendation: recomendation,
         },
       });
@@ -112,7 +112,7 @@ export class ResponseUserService {
         },
       });
 
-      if (user && formula_health === "UNFIT") {
+      if (user && result === "UNFIT") {
         const descriptions = user.ResponseUser.map((response) => {
           const question = response.question.question;
           const answer = response.question_answer.question_answer;
@@ -129,6 +129,6 @@ export class ResponseUserService {
         });
       }
     });
-    return { formula_health, recomendation };
+    return { result, recomendation };
   }
 }

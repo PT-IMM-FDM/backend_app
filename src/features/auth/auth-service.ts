@@ -83,7 +83,6 @@ export class AuthService {
   static async currentLoggedIn(
     user_id: string
   ): Promise<CurrentLoggedInUserResponse> {
-    console.log(user_id)
     const userData = await prisma.user.findUnique({
       where: {
         user_id,

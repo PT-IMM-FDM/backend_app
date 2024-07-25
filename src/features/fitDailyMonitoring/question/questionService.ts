@@ -59,6 +59,47 @@ export class QuestionService {
     return questions;
   }
 
+  static async getForm(user_id: string) {
+    const questions = await prisma.question.findMany({
+      where: {
+        deleted_at: null,
+      },
+      include: {
+        question_answer: {
+          where: {
+            deleted_at: null,
+          },
+        },
+      },
+    });
+
+    if (!questions) {
+      throw new ErrorResponse(
+        "Questions not found",
+        404,
+        [],
+        "QUESTIONS_NOT_FOUND"
+      );
+    }
+    return questions;
+  }
+
+  static async isFilled(user_id: string){
+    const isFilled = await prisma.attendance_health_result.findFirst({
+      where: {
+        user_id,
+        created_at: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+      },
+    });
+
+    if(isFilled){
+      return isFilled;
+    }
+  }
+
   static async updateQuestion(
     data: UpdateQuestionRequest
   ): Promise<UpdateQuestionResponse> {
@@ -105,7 +146,11 @@ export class QuestionService {
       },
     });
 
-    if (validateData.question_answer_id && validateData.question_answer && validateData.value) {
+    if (
+      validateData.question_answer_id &&
+      validateData.question_answer &&
+      validateData.value
+    ) {
       for (let i = 0; i < validateData.question_answer_id.length; i++) {
         await prisma.questionAnswer.update({
           where: {
@@ -119,7 +164,7 @@ export class QuestionService {
       }
     }
 
-    if(validateData.add_question_answer && validateData.add_value){
+    if (validateData.add_question_answer && validateData.add_value) {
       for (let i = 0; i < validateData.add_question_answer.length; i++) {
         await prisma.questionAnswer.create({
           data: {
@@ -131,7 +176,7 @@ export class QuestionService {
       }
     }
 
-    if(validateData.delete_question_answer){
+    if (validateData.delete_question_answer) {
       for (let i = 0; i < validateData.delete_question_answer.length; i++) {
         await prisma.questionAnswer.update({
           where: {
