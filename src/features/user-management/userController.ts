@@ -115,4 +115,18 @@ export class UserController {
       next(error);
     }
   }
+
+  static async updatePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user_id = res.locals.user;
+      const { old_password, new_password } = req.body;
+      await UserService.updatePassword({user_id, old_password, new_password });
+      return res.status(200).json({
+        success: true,
+        message: "Password updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

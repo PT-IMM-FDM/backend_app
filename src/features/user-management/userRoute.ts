@@ -20,11 +20,17 @@ userRoute.put("/update", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOnly,
   UserController.updateUser,
-])
+]);
 
 userRoute.delete("/delete", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOnly,
   UserController.deleteUser,
-])
+]);
+
+userRoute.get("/updatePassword", [
+  JwtMiddleware.verifyToken,
+  UserController.updatePassword,
+]);
+
 export default userRoute;

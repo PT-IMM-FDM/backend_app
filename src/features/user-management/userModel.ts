@@ -63,3 +63,9 @@ export type UpdateUserResponse = GetUserResponse;
 export type DeleteUserRequest = {
   user_id: string[];
 };
+
+export type UpdatePassword = {
+  user_id: string;
+  old_password: string;
+  new_password: string;
+}
