@@ -38,4 +38,27 @@ export class ResponseUserController {
       next(error);
     }
   }
+
+  static async getResponseUserById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { user_id, attandance_health_result_id } = req.params;
+      const getResponseUserById = await ResponseUserService.getResponseUserById(
+        {
+          user_id,
+          attandance_health_result_id: parseInt(attandance_health_result_id),
+        }
+      );
+      return res.status(200).json({
+        success: true,
+        data: getResponseUserById,
+        message: "Response User fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
