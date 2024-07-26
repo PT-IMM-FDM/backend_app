@@ -125,7 +125,10 @@ export class UserService {
 
     const users = await prisma.user.findMany({
       where: {
-        company_id: { in: CompanyId.map((item) => item.company_id) },
+        company: {
+          company_id: { in: CompanyId.map((item) => item.company_id) },
+          deleted_at: null,
+        },
         job_position_id: {
           in: jobPositionId.map((item) => item.job_position_id),
         },
