@@ -3,7 +3,7 @@ export const jobPositionDefault = [
     name: "Assistant Vice President",
   },
   {
-    name: "Dept Head",
+    name: "Department Head",
   },
   {
     name: "Direktur",
