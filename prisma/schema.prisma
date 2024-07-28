@@ -107,30 +107,33 @@ model QuestionAnswer {
 }
 
 model ResponseUser {
-  response_user_id   Int            @id @default(autoincrement())
-  user_id            String
-  question_id        Int
-  question_answer_id Int
-  user               User           @relation(fields: [user_id], references: [user_id])
-  question           Question       @relation(fields: [question_id], references: [question_id])
-  question_answer    QuestionAnswer @relation(fields: [question_answer_id], references: [question_answer_id])
-  created_at         DateTime       @default(now())
+  response_user_id            Int                      @id @default(autoincrement())
+  user_id                     String
+  question_id                 Int
+  question_answer_id          Int
+  attendance_health_result_id Int
+  attendance_health_result    Attendance_health_result @relation(fields: [attendance_health_result_id], references: [attendance_health_result_id])
+  user                        User                     @relation(fields: [user_id], references: [user_id])
+  question                    Question                 @relation(fields: [question_id], references: [question_id])
+  question_answer             QuestionAnswer           @relation(fields: [question_answer_id], references: [question_answer_id])
+  created_at                  DateTime                 @default(now())
 
   @@map("response")
 }
 
 model Attendance_health_result {
-  attendance_health_result_id Int      @id @default(autoincrement())
+  attendance_health_result_id Int            @id @default(autoincrement())
   user_id                     String
   attendance_status           String
   work_duration_plan          String
   shift                       Boolean
   is_driver                   Boolean
   vehicle_hull_number         String?
-  user                        User     @relation(fields: [user_id], references: [user_id])
+  user                        User           @relation(fields: [user_id], references: [user_id])
   result                      Result
   recomendation               String
-  created_at                  DateTime @default(now())
+  response_user               ResponseUser[]
+  created_at                  DateTime       @default(now())
 
   @@map("attendance_health_results")
 }

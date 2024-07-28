@@ -2,7 +2,10 @@ import { Validation } from "../../../validations";
 import { ErrorResponse } from "../../../models";
 import { prisma } from "../../../applications";
 import { ResponseUserValidation } from "./responseUserValidation";
-import { CreateResponseUserRequest } from "./responseUserModel";
+import {
+  CreateResponseUserRequest,
+  GetResponseUserByIdRequest,
+} from "./responseUserModel";
 import { sendMessageFdmUnfit } from "../../../utils";
 
 export class ResponseUserService {
@@ -11,6 +14,7 @@ export class ResponseUserService {
       ResponseUserValidation.CREATE_RESPONSE_USER,
       data
     );
+
     const user = await prisma.user.findUnique({
       where: {
         user_id: validateData.user_id,
@@ -57,18 +61,6 @@ export class ResponseUserService {
     }
 
     await prisma.$transaction(async (prisma) => {
-      await Promise.all(
-        validateData.question_answer_id.map((question_answer_id, index) =>
-          prisma.responseUser.create({
-            data: {
-              user_id: validateData.user_id,
-              question_id: validateData.question_id[index],
-              question_answer_id,
-            },
-          })
-        )
-      );
-
       await prisma.attendance_health_result.create({
         data: {
           user_id: validateData.user_id,
@@ -77,8 +69,17 @@ export class ResponseUserService {
           shift: validateData.shift,
           is_driver: validateData.is_driver,
           vehicle_hull_number: validateData.vehicle_hull_number,
-          result: result, // Ensure this is a valid enum value
+          result: result,
           recomendation: recomendation,
+          response_user: {
+            createMany: {
+              data: validateData.question_id.map((question_id, index) => ({
+                user_id: validateData.user_id,
+                question_id,
+                question_answer_id: validateData.question_answer_id[index],
+              })),
+            },
+          },
         },
       });
 
@@ -121,14 +122,93 @@ export class ResponseUserService {
 
         const descriptionString = descriptions.join("\n");
 
-        sendMessageFdmUnfit("0811597599", {
-          full_name: user.full_name,
-          phone_number: user.phone_number,
-          department: user.department.name,
-          description: descriptionString,
+        const phoneNumberOfDepartmentHead = await prisma.user.findMany({
+          where: {
+            role: {
+              name: "Department Head",
+            },
+          },
+          select: {
+            phone_number: true,
+          },
         });
+        for (let i of phoneNumberOfDepartmentHead) {
+          sendMessageFdmUnfit(i.phone_number, {
+            full_name: user.full_name,
+            phone_number: user.phone_number,
+            department: user.department.name,
+            description: descriptionString,
+          });
+        }
       }
     });
     return { result, recomendation };
+  }
+
+  static async getResponseUserById(data: GetResponseUserByIdRequest) {
+    const validateData = Validation.validate(
+      ResponseUserValidation.GET_RESPONSE_USER_BY_ID,
+      data
+    );
+
+    const responseUser = await prisma.responseUser.findMany({
+      where: {
+        user_id: validateData.user_id,
+        attendance_health_result_id: validateData.attandance_health_result_id,
+      },
+      select: {
+        user: {
+          select: {
+            full_name: true,
+            phone_number: true,
+            email: true,
+            birth_date: true,
+            department: {
+              select: {
+                name: true,
+              },
+            },
+            company: {
+              select: {
+                name: true,
+              },
+            },
+            employment_status: {
+              select: {
+                name: true,
+              },
+            },
+            job_position: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        attendance_health_result: {
+          select: {
+            attendance_status: true,
+            work_duration_plan: true,
+            shift: true,
+            is_driver: true,
+            vehicle_hull_number: true,
+            result: true,
+            recomendation: true,
+          },
+        },
+        question: {
+          select: {
+            question: true,
+          },
+        },
+        question_answer: {
+          select: {
+            question_answer: true,
+          },
+        },
+      },
+    });
+
+    return responseUser;
   }
 }

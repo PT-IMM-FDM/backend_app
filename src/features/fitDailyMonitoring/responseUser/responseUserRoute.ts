@@ -9,4 +9,9 @@ responseUserRoute.post("/create", [
   ResponseUserController.createResponseUser,
 ]);
 
+responseUserRoute.get("/:user_id/:attandance_health_result_id", [
+  JwtMiddleware.verifyToken,
+  ResponseUserController.getResponseUserById,
+]);
+
 export default responseUserRoute;

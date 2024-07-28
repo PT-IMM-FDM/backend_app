@@ -11,4 +11,9 @@ export class ResponseUserValidation {
     is_driver: z.boolean(),
     vehicle_hull_number: z.string().optional(),
   });
+
+  static readonly GET_RESPONSE_USER_BY_ID: ZodType = z.object({
+    user_id: z.string(),
+    attandance_health_result_id: z.number(),
+  });
 }

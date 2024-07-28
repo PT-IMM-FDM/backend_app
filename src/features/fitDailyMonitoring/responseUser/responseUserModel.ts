@@ -9,3 +9,7 @@ export type CreateResponseUserRequest = {
   vehicle_hull_number?: string;
 };
 
+export type GetResponseUserByIdRequest = {
+  user_id: string;
+  attandance_health_result_id: number;
+};
