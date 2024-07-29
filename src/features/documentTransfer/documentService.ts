@@ -216,10 +216,10 @@ export class DocumentService {
       { header: "Full Name", key: "full_name", width: 20 },
       { header: "Phone Number", key: "phone_number", width: 20 },
       { header: "Birth Date", key: "birth_date", width: 20 },
-      { header: "Company", key: "company", width: 20 },
-      { header: "Job Position", key: "job_position", width: 20 },
-      { header: "Employment Status", key: "employment_status", width: 20 },
-      { header: "Department", key: "department", width: 20 },
+      { header: "Company", key: "company", width: 30 },
+      { header: "Job Position", key: "job_position", width: 30 },
+      { header: "Employment Status", key: "employment_status", width: 30 },
+      { header: "Department", key: "department", width: 30 },
     ];
 
     const listCompany = await prisma.company.findMany({
