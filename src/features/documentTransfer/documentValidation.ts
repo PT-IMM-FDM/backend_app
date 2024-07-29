@@ -10,7 +10,7 @@ export class DocumentValidation {
     result: z.enum(["FIT", "FIT_FOLLOW_UP", "UNFIT"]).optional(),
     customDateFrom: z.date().optional(),
     customDateTo: z.date().optional(),
-    user_id: z.string().optional(),
+    user_id: z.string().array().optional(),
     job_position_name: z.string().array().optional(),
     department_name: z.string().array().optional(),
     company_name: z.string().array().optional(),

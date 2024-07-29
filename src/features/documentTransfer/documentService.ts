@@ -298,7 +298,9 @@ export class DocumentService {
         },
         result: resultValue,
         user: {
-          user_id: validateData.user_id,
+          user_id: {
+            in: validateData.user_id ? [...validateData.user_id] : undefined,
+          },
           job_position: {
             name: { in: validateData.job_position_name },
           },
