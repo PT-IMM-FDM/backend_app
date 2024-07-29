@@ -25,8 +25,8 @@ documentRoute.get("/template-users", [
 ]);
 
 documentRoute.post("/export-fdm", [
-  // JwtMiddleware.verifyToken,
-  // JwtMiddleware.adminOrViewer,
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOrViewer,
   DocumentController.exportDataFdm,
 ]);
 
