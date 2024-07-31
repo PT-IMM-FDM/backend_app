@@ -14,6 +14,14 @@ export type GetFDMRequest = {
 
 export type GetFDMResponse = Attendance_health_result[];
 
+export type GetMyFDMRequest = {
+  startDate?: Date;
+  endDate?: Date;
+  user_id: string;
+};
+
+export type GetMyFDMResponse = Attendance_health_result[];
+
 export type ResultKey = Result;
 
 export type GetFDMCountResultRequest = {

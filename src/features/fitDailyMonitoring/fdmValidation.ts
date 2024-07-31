@@ -12,6 +12,12 @@ export class FDMValidation {
     result: z.enum(["FIT", "FIT_FOLLOW_UP", "UNFIT"]).optional(),
   });
 
+  static readonly MY_FDM: ZodType = z.object({
+    startDate: z.date().optional(),
+    endDate: z.date().optional(),
+    user_id: z.string()
+  });
+
   static readonly COUNT_RESULT: ZodType = z.object({
     startDate: z.date().optional(),
     endDate: z.date().optional(),

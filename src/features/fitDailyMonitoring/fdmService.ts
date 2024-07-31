@@ -7,6 +7,8 @@ import {
   GetFDMCountResultRequest,
   GetFDMRequest,
   GetFDMResponse,
+  GetMyFDMRequest,
+  GetMyFDMResponse,
   ResultKey,
   WhoFilledTodayRequest,
 } from "./fdmModel";
@@ -72,6 +74,50 @@ export class FdmService {
       },
     });
     return fdm;
+  }
+
+  static async getMyFDM(data: GetMyFDMRequest): Promise<GetMyFDMResponse> {
+    const validateData = Validation.validate(FDMValidation.MY_FDM, data);
+    const myFdm = await prisma.attendance_health_result.findMany({
+      where: {
+        created_at: {
+          gte: validateData.startDate,
+          lte: validateData.endDate,
+        },
+        user: {
+          user_id: validateData.user_id,
+          deleted_at: null,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            full_name: true,
+            job_position: {
+              select: {
+                name: true,
+              },
+            },
+            department: {
+              select: {
+                name: true,
+              },
+            },
+            company: {
+              select: {
+                name: true,
+              },
+            },
+            employment_status: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return myFdm;
   }
 
   static async countResult(data: GetFDMCountResultRequest) {

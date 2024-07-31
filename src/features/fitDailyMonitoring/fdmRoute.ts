@@ -13,6 +13,10 @@ fdmRoute.get("/", [
   JwtMiddleware.adminOrViewer,
   FdmController.getFDM,
 ]);
+fdmRoute.get("/me", [
+  JwtMiddleware.verifyToken,
+  FdmController.getMyFDM,
+]);
 fdmRoute.get("/countResult", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOrViewer,

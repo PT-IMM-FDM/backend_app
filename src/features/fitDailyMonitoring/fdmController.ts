@@ -90,6 +90,41 @@ export class FdmController {
     }
   }
 
+  static async getMyFDM(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        startDate,
+        endDate,
+      } = req.query;
+
+      const user_id = res.locals.user.user_id;
+      let formattedStartDate;
+      let formattedEndDate;
+
+      if (startDate && endDate) {
+        formattedStartDate = new Date(Date.parse(startDate.toString()));
+        formattedStartDate.setHours(0, 0, 0, 0);
+
+        formattedEndDate = new Date(Date.parse(endDate.toString()));
+        formattedEndDate.setHours(23, 59, 59, 999);
+      }
+
+      const getFDM = await FdmService.getFDM({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        user_id,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: getFDM,
+        message: "FDM fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async countResult(req: Request, res: Response, next: NextFunction) {
     try {
       const {
