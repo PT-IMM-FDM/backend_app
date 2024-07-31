@@ -8,6 +8,7 @@ export type CreateUserRequest = Omit<
 export type CreateUserResponse = GetUserResponse;
 
 export type GetUserRequest = {
+  adminUserId: string;
   company_name?: string[];
   job_position?: string[];
   employment_status?: string[];

@@ -51,6 +51,7 @@ export class UserController {
         is_active_to_boolean = is_active === "true" ? true : false;
       }
       const getUsers = await UserService.getUsers({
+        adminUserId: res.locals.user.user_id,
         company_name,
         job_position,
         employment_status,

@@ -99,6 +99,52 @@ export class UserService {
   }
 
   static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
+    let users;
+    const adminRole = await prisma.user.findFirst({
+      where: {
+        user_id: data.adminUserId,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            name: true,
+          },
+        },
+        company: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (
+      adminRole &&
+      adminRole.role.name !== "Admin" &&
+      adminRole.role.name !== "Full Viewer"
+    ) {
+      users = await prisma.user.findMany({
+        where: {
+          department: {
+            name: adminRole.department.name,
+          },
+          company: {
+            name: adminRole.company.name,
+            deleted_at: null,
+          },
+          deleted_at: null,
+        },
+        select: formatUserResponseData,
+      });
+
+      return users;
+    }
+
     const CompanyId = await prisma.company.findMany({
       where: {
         name: { in: data.company_name, mode: "insensitive" },
@@ -123,7 +169,7 @@ export class UserService {
       },
     });
 
-    const users = await prisma.user.findMany({
+    users = await prisma.user.findMany({
       where: {
         company: {
           company_id: { in: CompanyId.map((item) => item.company_id) },
@@ -160,7 +206,7 @@ export class UserService {
       },
     });
 
-    if(findPhone && findPhone.user_id !== validateData.user_id) {
+    if (findPhone && findPhone.user_id !== validateData.user_id) {
       throw new ErrorResponse(
         "Phone number already exists",
         400,
@@ -176,7 +222,7 @@ export class UserService {
       },
     });
 
-    if(findEmail && findEmail.user_id !== validateData.user_id) {
+    if (findEmail && findEmail.user_id !== validateData.user_id) {
       throw new ErrorResponse(
         "Email already exists",
         400,
@@ -234,7 +280,10 @@ export class UserService {
   }
 
   static async updatePassword(data: UpdatePassword) {
-    const validateData = Validation.validate(UserValidation.UPDATE_PASSWORD, data);
+    const validateData = Validation.validate(
+      UserValidation.UPDATE_PASSWORD,
+      data
+    );
     const userData = await prisma.user.findUnique({
       where: {
         user_id: data.user_id,
@@ -253,7 +302,10 @@ export class UserService {
       );
     }
 
-    const isPasswordMatch = await comparePassword(validateData.old_password, userData.password);
+    const isPasswordMatch = await comparePassword(
+      validateData.old_password,
+      userData.password
+    );
     if (!isPasswordMatch) {
       throw new ErrorResponse(
         "Invalid Old Password",
