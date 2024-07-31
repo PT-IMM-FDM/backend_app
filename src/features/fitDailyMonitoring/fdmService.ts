@@ -11,6 +11,7 @@ import {
   GetMyFDMResponse,
   ResultKey,
   WhoFilledTodayRequest,
+  addAttachmentFileRequest,
 } from "./fdmModel";
 
 type ResultEnum = ResultKey;
@@ -207,7 +208,18 @@ export class FdmService {
           deleted_at: null,
         },
       },
-      include: {
+      select: {
+        attendance_health_result_id: true,
+        attendance_status: true,
+        work_duration_plan: true,
+        shift: true,
+        is_driver: true,
+        vehicle_hull_number: true,
+        result: true,
+        note: true,
+        recomendation: true,
+        created_at: true,
+        user_id: true,
         user: {
           select: {
             full_name: true,
@@ -389,5 +401,22 @@ export class FdmService {
     });
 
     return usersNotFilledToday;
+  }
+
+  static async addAttachmentFile(data: addAttachmentFileRequest) {
+    const validateData = Validation.validate(
+      FDMValidation.ADD_ATTACHMENT_FILE,
+      data
+    );
+
+    await prisma.attendanceHealthFileAttachment.create({
+      data: {
+        attendance_health_result_id: validateData.attendance_health_result_id,
+        file_name: data.file.filename,
+        file_size: data.file.size,
+        file_type: data.file.mimetype,
+        file_url: data.file.path,
+      },
+    });
   }
 }

@@ -7,22 +7,27 @@ const parseArrayParam = (param: any): number[] | undefined => {
 
   if (Array.isArray(param)) {
     // Jika param adalah array, konversikan setiap elemen menjadi angka
-    return param.map((item) => {
-      const num = parseInt(item);
-      if (isNaN(num)) {
-        console.warn(`Warning: "${item}" cannot be converted to a number`);
-      }
-      return num;
-    }).filter((num) => !isNaN(num));
-  } else if (typeof param === 'string') {
+    return param
+      .map((item) => {
+        const num = parseInt(item);
+        if (isNaN(num)) {
+          console.warn(`Warning: "${item}" cannot be converted to a number`);
+        }
+        return num;
+      })
+      .filter((num) => !isNaN(num));
+  } else if (typeof param === "string") {
     // Jika param adalah string, ubah menjadi array angka
-    return param.split(',').map((item) => {
-      const num = parseInt(item.trim());
-      if (isNaN(num)) {
-        console.warn(`Warning: "${item}" cannot be converted to a number`);
-      }
-      return num;
-    }).filter((num) => !isNaN(num));
+    return param
+      .split(",")
+      .map((item) => {
+        const num = parseInt(item.trim());
+        if (isNaN(num)) {
+          console.warn(`Warning: "${item}" cannot be converted to a number`);
+        }
+        return num;
+      })
+      .filter((num) => !isNaN(num));
   }
 
   // Jika param bukan string atau array, langsung konversikan menjadi angka tunggal
@@ -45,17 +50,8 @@ export class FdmController {
       uid = user_id 
       ahrid = attendance_health_result_id
       */
-      const {
-        startDate,
-        endDate,
-        uid,
-        jpid,
-        esid,
-        cid,
-        did,
-        result,
-        ahrid,
-      } = req.query;
+      const { startDate, endDate, uid, jpid, esid, cid, did, result, ahrid } =
+        req.query;
 
       const adminUserId = res.locals.user.user_id;
       let formattedStartDate;
@@ -94,10 +90,7 @@ export class FdmController {
 
   static async getMyFDM(req: Request, res: Response, next: NextFunction) {
     try {
-      const {
-        startDate,
-        endDate,
-      } = req.query;
+      const { startDate, endDate } = req.query;
 
       const user_id = res.locals.user.user_id;
       let formattedStartDate;
@@ -129,15 +122,7 @@ export class FdmController {
 
   static async countResult(req: Request, res: Response, next: NextFunction) {
     try {
-      const {
-        startDate,
-        endDate,
-        uid,
-        jpid,
-        esid,
-        cid,
-        did,
-      } = req.query;
+      const { startDate, endDate, uid, jpid, esid, cid, did } = req.query;
 
       let formattedStartDate;
       let formattedEndDate;
@@ -170,14 +155,13 @@ export class FdmController {
     }
   }
 
-  static async countFilledToday(req: Request, res: Response, next: NextFunction) {
+  static async countFilledToday(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const {
-        jpid,
-        esid,
-        did,
-        cid,
-      } = req.query;
+      const { jpid, esid, did, cid } = req.query;
 
       const countFilledToday = await FdmService.countFilledToday({
         job_position_id: parseArrayParam(jpid),
@@ -196,14 +180,13 @@ export class FdmController {
     }
   }
 
-  static async getUsersNotFilledToday(req: Request, res: Response, next: NextFunction) {
+  static async getUsersNotFilledToday(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const {
-        jpid,
-        esid,
-        did,
-        cid,
-      } = req.query;
+      const { jpid, esid, did, cid } = req.query;
 
       const whoFilledToday = await FdmService.getUsersNotFilledToday({
         job_position_id: parseArrayParam(jpid),
@@ -216,6 +199,40 @@ export class FdmController {
         success: true,
         data: whoFilledToday,
         message: "FDM who filled today fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async addAttachmentFile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const attendance_health_result_id = parseInt(
+        req.params.attendance_health_result_id
+      );
+      const file = req.file;
+
+      if (!file) {
+        throw new ErrorResponse(
+          "File not found",
+          400,
+          ["file"],
+          "FILE_NOT_FOUND"
+        );
+      }
+
+      await FdmService.addAttachmentFile({
+        attendance_health_result_id,
+        file,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Attachment file added successfully",
       });
     } catch (error) {
       next(error);

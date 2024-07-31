@@ -48,3 +48,8 @@ export type WhoFilledTodayRequest = {
   department_id?: number[];
   company_id?: number[];
 }
+
+export type addAttachmentFileRequest = {
+  attendance_health_result_id: number;
+  file: Express.Multer.File;
+};

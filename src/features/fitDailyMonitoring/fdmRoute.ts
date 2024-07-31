@@ -1,4 +1,4 @@
-import { Router, response } from "express";
+import { Router } from "express";
 import { JwtMiddleware } from "../../middlewares/jwt_middleware";
 import { questionRoute } from "./question";
 import { FdmController } from "./fdmController";
@@ -13,10 +13,7 @@ fdmRoute.get("/", [
   JwtMiddleware.adminOrViewer,
   FdmController.getFDM,
 ]);
-fdmRoute.get("/me", [
-  JwtMiddleware.verifyToken,
-  FdmController.getMyFDM,
-]);
+fdmRoute.get("/me", [JwtMiddleware.verifyToken, FdmController.getMyFDM]);
 fdmRoute.get("/countResult", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOrViewer,
@@ -31,6 +28,11 @@ fdmRoute.get("/usersNotFilledToday", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOrViewer,
   FdmController.getUsersNotFilledToday,
+]);
+fdmRoute.post("/:attendance_health_result_id/addAttachment", [
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
+  FdmController.addAttachmentFile,
 ]);
 
 export default fdmRoute;

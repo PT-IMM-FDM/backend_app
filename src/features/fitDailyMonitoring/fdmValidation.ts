@@ -16,7 +16,7 @@ export class FDMValidation {
   static readonly MY_FDM: ZodType = z.object({
     startDate: z.date().optional(),
     endDate: z.date().optional(),
-    user_id: z.string()
+    user_id: z.string(),
   });
 
   static readonly COUNT_RESULT: ZodType = z.object({
@@ -41,5 +41,9 @@ export class FDMValidation {
     employment_status_id: z.number().array().optional(),
     department_id: z.number().array().optional(),
     company_id: z.number().array().optional(),
+  });
+
+  static readonly ADD_ATTACHMENT_FILE: ZodType = z.object({
+    attendance_health_result_id: z.number(),
   });
 }

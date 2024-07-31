@@ -5,7 +5,7 @@ import { formatSpacedFileName } from "../utils/format";
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let dest = "public/uploads/";
-    if (file.fieldname === "import_users_file") {
+    if (file.fieldname === "file_of_users") {
       dest = "public/uploads/users_file/";
     }
     if (file.fieldname === "fdm_attachment_file") {
