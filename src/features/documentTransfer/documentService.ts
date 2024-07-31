@@ -220,6 +220,8 @@ export class DocumentService {
           data: userData,
         });
       });
+      // Remove the file after the data is imported
+      fs.rmSync("./public/uploads/users_file/", { recursive: true, force: true });
     }
 
     return "Users imported successfully";
