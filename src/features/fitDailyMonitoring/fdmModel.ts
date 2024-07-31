@@ -1,6 +1,7 @@
 import { Attendance_health_result, Result } from "@prisma/client";
 
 export type GetFDMRequest = {
+  adminUserId: string;
   startDate?: Date;
   endDate?: Date;
   user_id?: string;

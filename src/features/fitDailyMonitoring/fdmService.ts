@@ -28,7 +28,125 @@ export class FdmService {
       resultValue = resultEnumMapping[data.result as ResultKey];
     }
     const validateData = Validation.validate(FDMValidation.GET_FDM, data);
-    const fdm = await prisma.attendance_health_result.findMany({
+
+    const adminRole = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.adminUserId,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department_id: true,
+        company_id: true,
+      },
+    });
+
+    let fdm;
+
+    if (
+      adminRole &&
+      adminRole.role.name !== "Admin" &&
+      adminRole.role.name !== "Full Viewer"
+    ) {
+      fdm = await prisma.attendance_health_result.findMany({
+        where: {
+          created_at: {
+            gte: validateData.startDate,
+            lte: validateData.endDate,
+          },
+          result: resultValue,
+          user: {
+            user_id: validateData.user_id,
+            job_position_id: { in: validateData.job_position_id },
+            department_id: adminRole.department_id,
+            company_id: adminRole.company_id,
+            employment_status_id: { in: validateData.employment_status_id },
+            deleted_at: null,
+          },
+          attendance_health_result_id: validateData.attendance_health_result_id,
+        },
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              job_position: {
+                select: {
+                  name: true,
+                },
+              },
+              department: {
+                select: {
+                  name: true,
+                },
+              },
+              company: {
+                select: {
+                  name: true,
+                },
+              },
+              employment_status: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } else if (
+      (adminRole && adminRole.role.name === "Full Viewer") ||
+      (adminRole && adminRole.role.name === "Admin")
+    ) {
+      fdm = await prisma.attendance_health_result.findMany({
+        where: {
+          created_at: {
+            gte: validateData.startDate,
+            lte: validateData.endDate,
+          },
+          result: resultValue,
+          user: {
+            user_id: validateData.user_id,
+            job_position_id: { in: validateData.job_position_id },
+            department_id: { in: validateData.department_id },
+            company_id: { in: validateData.company_id },
+            employment_status_id: { in: validateData.employment_status_id },
+            deleted_at: null,
+          },
+          attendance_health_result_id: validateData.attendance_health_result_id,
+        },
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              job_position: {
+                select: {
+                  name: true,
+                },
+              },
+              department: {
+                select: {
+                  name: true,
+                },
+              },
+              company: {
+                select: {
+                  name: true,
+                },
+              },
+              employment_status: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+    fdm = await prisma.attendance_health_result.findMany({
       where: {
         created_at: {
           gte: validateData.startDate,
