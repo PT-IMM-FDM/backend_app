@@ -2,7 +2,14 @@ import { Validation } from "../../validations";
 import { ErrorResponse } from "../../models";
 import { prisma } from "../../applications";
 import { FDMValidation } from "./fdmValidation";
-import { GetFDMRequest, GetFDMResponse, ResultKey } from "./fdmModel";
+import {
+  GetFDMCountFilledTodayRequest,
+  GetFDMCountResultRequest,
+  GetFDMRequest,
+  GetFDMResponse,
+  ResultKey,
+  WhoFilledTodayRequest,
+} from "./fdmModel";
 
 type ResultEnum = ResultKey;
 
@@ -28,10 +35,10 @@ export class FdmService {
         result: resultValue,
         user: {
           user_id: validateData.user_id,
-          job_position_id: {in: validateData.job_position_id},
-          department_id: {in: validateData.department_id},
+          job_position_id: { in: validateData.job_position_id },
+          department_id: { in: validateData.department_id },
           company_id: { in: validateData.company_id },
-          employment_status_id: {in: validateData.employment_status_id},
+          employment_status_id: { in: validateData.employment_status_id },
           deleted_at: null,
         },
         attendance_health_result_id: validateData.attendance_health_result_id,
@@ -65,5 +72,158 @@ export class FdmService {
       },
     });
     return fdm;
+  }
+
+  static async countResult(data: GetFDMCountResultRequest) {
+    const validateData = Validation.validate(FDMValidation.COUNT_RESULT, data);
+    const resultFit = await prisma.attendance_health_result.count({
+      where: {
+        result: "FIT",
+        created_at: {
+          gte: validateData.startDate,
+          lte: validateData.endDate,
+        },
+        user: {
+          user_id: validateData.user_id,
+          job_position_id: { in: validateData.job_position_id },
+          department_id: { in: validateData.department_id },
+          company_id: { in: validateData.company_id },
+          employment_status_id: { in: validateData.employment_status_id },
+          deleted_at: null,
+        },
+      },
+    });
+
+    const resultFitFollowUp = await prisma.attendance_health_result.count({
+      where: {
+        result: "FIT_FOLLOW_UP",
+        created_at: {
+          gte: validateData.startDate,
+          lte: validateData.endDate,
+        },
+        user: {
+          user_id: validateData.user_id,
+          job_position_id: { in: validateData.job_position_id },
+          department_id: { in: validateData.department_id },
+          company_id: { in: validateData.company_id },
+          employment_status_id: { in: validateData.employment_status_id },
+          deleted_at: null,
+        },
+      },
+    });
+
+    const resultUnfit = await prisma.attendance_health_result.count({
+      where: {
+        result: "UNFIT",
+        created_at: {
+          gte: validateData.startDate,
+          lte: validateData.endDate,
+        },
+        user: {
+          user_id: validateData.user_id,
+          job_position_id: { in: validateData.job_position_id },
+          department_id: { in: validateData.department_id },
+          company_id: { in: validateData.company_id },
+          employment_status_id: { in: validateData.employment_status_id },
+          deleted_at: null,
+        },
+      },
+    });
+    return {
+      resultFit,
+      resultFitFollowUp,
+      resultUnfit,
+    };
+  }
+
+  static async countFilledToday(data: GetFDMCountFilledTodayRequest) {
+    const validateData = Validation.validate(
+      FDMValidation.COUNT_FILLED_TODAY,
+      data
+    );
+
+    const countFilledToday = await prisma.attendance_health_result.count({
+      where: {
+        created_at: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        user: {
+          job_position_id: { in: validateData.job_position_id },
+          department_id: { in: validateData.department_id },
+          company_id: { in: validateData.company_id },
+          employment_status_id: { in: validateData.employment_status_id },
+          deleted_at: null,
+        },
+      },
+    });
+    return countFilledToday;
+  }
+
+  static async getUsersNotFilledToday(data: WhoFilledTodayRequest) {
+    const validateData = Validation.validate(
+      FDMValidation.WHO_FILLED_TODAY,
+      data
+    );
+
+    const usersFilledToday = await prisma.attendance_health_result.findMany({
+      where: {
+        created_at: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        user: {
+          job_position_id: { in: validateData.job_position_id },
+          department_id: { in: validateData.department_id },
+          company_id: { in: validateData.company_id },
+          employment_status_id: { in: validateData.employment_status_id },
+          deleted_at: null,
+        },
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
+    const userIdsFilledToday = usersFilledToday.map((user) => user.user_id);
+
+    const usersNotFilledToday = await prisma.user.findMany({
+      where: {
+        user_id: {
+          notIn: userIdsFilledToday,
+        },
+        job_position_id: { in: validateData.job_position_id },
+        department_id: { in: validateData.department_id },
+        company_id: { in: validateData.company_id },
+        employment_status_id: { in: validateData.employment_status_id },
+        deleted_at: null,
+      },
+      select: {
+        user_id: true,
+        full_name: true,
+        job_position: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            name: true,
+          },
+        },
+        company: {
+          select: {
+            name: true,
+          },
+        },
+        employment_status: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    return usersNotFilledToday;
   }
 }
