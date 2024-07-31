@@ -12,7 +12,7 @@ export const adminDefault = [
     role_id: 1,
   },
   {
-    full_name: "Admin Viewer Only",
+    full_name: "Admin Viewer All Department",
     phone_number: "0811597599",
     email: "11211040@student.itk.ac.id",
     password: "admin123",
@@ -24,7 +24,7 @@ export const adminDefault = [
     role_id: 2,
   },
   {
-    full_name: "Hanya Staff biasa",
+    full_name: "Admin Viewer One Department",
     phone_number: "081994445684",
     email: "11211036@student.itk.ac.id",
     password: "admin123",
@@ -34,5 +34,16 @@ export const adminDefault = [
     employment_status_id: 3,
     department_id: 1,
     role_id: 3,
+  },
+  {
+    full_name: "Bukan Admin",
+    phone_number: "12345",
+    password: "bukanadmin",
+    birth_date: "2003/03/03",
+    company_id: 34,
+    job_position_id: 1,
+    employment_status_id: 1,
+    department_id: 1,
+    role_id: 4,
   }
 ];

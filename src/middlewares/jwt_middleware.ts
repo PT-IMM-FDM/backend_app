@@ -72,7 +72,8 @@ export class JwtMiddleware {
 
         if (
           (userData && userData.role.name !== "Admin") &&
-          (userData && userData.role.name !== "Viewer")
+          (userData && userData.role.name !== "Viewer") &&
+          (userData && userData.role.name !== "Full Viewer")
         ) {
           throw new ErrorResponse(
             "Only be accessed by Admin or Viewer.",

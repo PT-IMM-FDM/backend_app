@@ -6,9 +6,9 @@ export const employmentStatusDefault = [
     name: "Kontraktor",
   },
   {
-    name: "Magang/PKL",
+    name: "Magang / PKL",
   },
   {
-    name: "TA",
+    name: "TUgas Akhir / Skripsi",
   },
 ];
