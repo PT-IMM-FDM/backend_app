@@ -89,4 +89,99 @@ export class FdmController {
       next(error);
     }
   }
+
+  static async countResult(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        startDate,
+        endDate,
+        uid,
+        jpid,
+        esid,
+        cid,
+        did,
+      } = req.query;
+
+      let formattedStartDate;
+      let formattedEndDate;
+
+      if (startDate && endDate) {
+        formattedStartDate = new Date(Date.parse(startDate.toString()));
+        formattedStartDate.setHours(0, 0, 0, 0);
+
+        formattedEndDate = new Date(Date.parse(endDate.toString()));
+        formattedEndDate.setHours(23, 59, 59, 999);
+      }
+
+      const countResult = await FdmService.countResult({
+        user_id: uid as string,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        job_position_id: parseArrayParam(jpid),
+        employment_status_id: parseArrayParam(esid),
+        company_id: parseArrayParam(cid),
+        department_id: parseArrayParam(did),
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: countResult,
+        message: "FDM count result fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async countFilledToday(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        jpid,
+        esid,
+        did,
+        cid,
+      } = req.query;
+
+      const countFilledToday = await FdmService.countFilledToday({
+        job_position_id: parseArrayParam(jpid),
+        employment_status_id: parseArrayParam(esid),
+        department_id: parseArrayParam(did),
+        company_id: parseArrayParam(cid),
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: countFilledToday,
+        message: "FDM count filled today fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getUsersNotFilledToday(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        jpid,
+        esid,
+        did,
+        cid,
+      } = req.query;
+
+      const whoFilledToday = await FdmService.getUsersNotFilledToday({
+        job_position_id: parseArrayParam(jpid),
+        employment_status_id: parseArrayParam(esid),
+        department_id: parseArrayParam(did),
+        company_id: parseArrayParam(cid),
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: whoFilledToday,
+        message: "FDM who filled today fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

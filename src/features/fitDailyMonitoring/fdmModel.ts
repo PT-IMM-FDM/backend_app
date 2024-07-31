@@ -15,3 +15,27 @@ export type GetFDMRequest = {
 export type GetFDMResponse = Attendance_health_result[];
 
 export type ResultKey = Result;
+
+export type GetFDMCountResultRequest = {
+  user_id?: string;
+  startDate?: Date;
+  endDate?: Date;
+  job_position_id?: number[];
+  employment_status_id?: number[];
+  department_id?: number[];
+  company_id?: number[];
+};
+
+export type GetFDMCountFilledTodayRequest = {
+  job_position_id?: number[];
+  employment_status_id?: number[];
+  department_id?: number[];
+  company_id?: number[];
+}
+
+export type WhoFilledTodayRequest = {
+  job_position_id?: number[];
+  employment_status_id?: number[];
+  department_id?: number[];
+  company_id?: number[];
+}
