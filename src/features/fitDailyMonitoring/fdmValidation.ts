@@ -2,6 +2,7 @@ import z, { ZodType } from "zod";
 
 export class FDMValidation {
   static readonly GET_FDM: ZodType = z.object({
+    adminUserId: z.string(),
     startDate: z.date().optional(),
     endDate: z.date().optional(),
     user_id: z.string().optional(),

@@ -11,37 +11,19 @@ import { hashPassword } from "../../src/utils";
 async function main() {
   await prisma.$transaction(async (tx) => {
     await tx.role.deleteMany({});
-    await tx.role.createMany({
-      data: roleDefault,
-    });
+    await tx.role.createMany({ data: roleDefault });
 
     await tx.company.deleteMany({});
-    await tx.company.createMany({
-      data: companyDefault.map((company) => ({
-        ...company,
-      })),
-    });
+    await tx.company.createMany({ data: companyDefault });
 
     await tx.department.deleteMany({});
-    await tx.department.createMany({
-      data: departmentDefault.map((department) => ({
-        ...department,
-      })),
-    });
+    await tx.department.createMany({ data: departmentDefault });
 
     await tx.jobPosition.deleteMany({});
-    await tx.jobPosition.createMany({
-      data: jobPositionDefault.map((jobPosition) => ({
-        ...jobPosition,
-      })),
-    });
+    await tx.jobPosition.createMany({ data: jobPositionDefault });
 
     await tx.employmentStatus.deleteMany({});
-    await tx.employmentStatus.createMany({
-      data: employmentStatusDefault.map((employmentStatus) => ({
-        ...employmentStatus,
-      })),
-    });
+    await tx.employmentStatus.createMany({ data: employmentStatusDefault });
 
     await tx.user.deleteMany({});
     await tx.user.createMany({

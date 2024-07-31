@@ -85,7 +85,7 @@ export class QuestionService {
   }
 
   static async isFilled(user_id: string){
-    const isFilled = await prisma.attendance_health_result.findFirst({
+    const isFilled = await prisma.attendanceHealthResult.findFirst({
       where: {
         user_id,
         created_at: {

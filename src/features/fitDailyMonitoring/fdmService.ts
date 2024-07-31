@@ -28,7 +28,125 @@ export class FdmService {
       resultValue = resultEnumMapping[data.result as ResultKey];
     }
     const validateData = Validation.validate(FDMValidation.GET_FDM, data);
-    const fdm = await prisma.attendance_health_result.findMany({
+
+    const adminRole = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.adminUserId,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department_id: true,
+        company_id: true,
+      },
+    });
+
+    let fdm;
+
+    if (
+      adminRole &&
+      adminRole.role.name !== "Admin" &&
+      adminRole.role.name !== "Full Viewer"
+    ) {
+      fdm = await prisma.attendanceHealthResult.findMany({
+        where: {
+          created_at: {
+            gte: validateData.startDate,
+            lte: validateData.endDate,
+          },
+          result: resultValue,
+          user: {
+            user_id: validateData.user_id,
+            job_position_id: { in: validateData.job_position_id },
+            department_id: adminRole.department_id,
+            company_id: adminRole.company_id,
+            employment_status_id: { in: validateData.employment_status_id },
+            deleted_at: null,
+          },
+          attendance_health_result_id: validateData.attendance_health_result_id,
+        },
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              job_position: {
+                select: {
+                  name: true,
+                },
+              },
+              department: {
+                select: {
+                  name: true,
+                },
+              },
+              company: {
+                select: {
+                  name: true,
+                },
+              },
+              employment_status: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } else if (
+      (adminRole && adminRole.role.name === "Full Viewer") ||
+      (adminRole && adminRole.role.name === "Admin")
+    ) {
+      fdm = await prisma.attendanceHealthResult.findMany({
+        where: {
+          created_at: {
+            gte: validateData.startDate,
+            lte: validateData.endDate,
+          },
+          result: resultValue,
+          user: {
+            user_id: validateData.user_id,
+            job_position_id: { in: validateData.job_position_id },
+            department_id: { in: validateData.department_id },
+            company_id: { in: validateData.company_id },
+            employment_status_id: { in: validateData.employment_status_id },
+            deleted_at: null,
+          },
+          attendance_health_result_id: validateData.attendance_health_result_id,
+        },
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              job_position: {
+                select: {
+                  name: true,
+                },
+              },
+              department: {
+                select: {
+                  name: true,
+                },
+              },
+              company: {
+                select: {
+                  name: true,
+                },
+              },
+              employment_status: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+    fdm = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: validateData.startDate,
@@ -78,7 +196,7 @@ export class FdmService {
 
   static async getMyFDM(data: GetMyFDMRequest): Promise<GetMyFDMResponse> {
     const validateData = Validation.validate(FDMValidation.MY_FDM, data);
-    const myFdm = await prisma.attendance_health_result.findMany({
+    const myFdm = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: validateData.startDate,
@@ -122,7 +240,7 @@ export class FdmService {
 
   static async countResult(data: GetFDMCountResultRequest) {
     const validateData = Validation.validate(FDMValidation.COUNT_RESULT, data);
-    const resultFit = await prisma.attendance_health_result.count({
+    const resultFit = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT",
         created_at: {
@@ -140,7 +258,7 @@ export class FdmService {
       },
     });
 
-    const resultFitFollowUp = await prisma.attendance_health_result.count({
+    const resultFitFollowUp = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT_FOLLOW_UP",
         created_at: {
@@ -158,7 +276,7 @@ export class FdmService {
       },
     });
 
-    const resultUnfit = await prisma.attendance_health_result.count({
+    const resultUnfit = await prisma.attendanceHealthResult.count({
       where: {
         result: "UNFIT",
         created_at: {
@@ -188,7 +306,7 @@ export class FdmService {
       data
     );
 
-    const countFilledToday = await prisma.attendance_health_result.count({
+    const countFilledToday = await prisma.attendanceHealthResult.count({
       where: {
         created_at: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
@@ -212,7 +330,7 @@ export class FdmService {
       data
     );
 
-    const usersFilledToday = await prisma.attendance_health_result.findMany({
+    const usersFilledToday = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),

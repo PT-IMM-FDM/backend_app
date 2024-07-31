@@ -57,6 +57,7 @@ export class FdmController {
         ahrid,
       } = req.query;
 
+      const adminUserId = res.locals.user.user_id;
       let formattedStartDate;
       let formattedEndDate;
 
@@ -69,6 +70,7 @@ export class FdmController {
       }
 
       const getFDM = await FdmService.getFDM({
+        adminUserId,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
         user_id: uid as string,
@@ -109,7 +111,7 @@ export class FdmController {
         formattedEndDate.setHours(23, 59, 59, 999);
       }
 
-      const getFDM = await FdmService.getFDM({
+      const getMyFDM = await FdmService.getMyFDM({
         startDate: formattedStartDate,
         endDate: formattedEndDate,
         user_id,
@@ -117,7 +119,7 @@ export class FdmController {
 
       return res.status(200).json({
         success: true,
-        data: getFDM,
+        data: getMyFDM,
         message: "FDM fetched successfully",
       });
     } catch (error) {

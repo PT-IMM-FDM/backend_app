@@ -8,6 +8,9 @@ const storage = multer.diskStorage({
     if (file.fieldname === "import_users_file") {
       dest = "public/uploads/users_file/";
     }
+    if (file.fieldname === "fdm_attachment_file") {
+      dest = "public/uploads/fdm_attachment_file/";
+    }
     if (!fs.existsSync(dest)) {
       fs.mkdirSync(dest, { recursive: true });
     }

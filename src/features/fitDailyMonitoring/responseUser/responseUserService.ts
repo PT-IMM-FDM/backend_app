@@ -61,7 +61,7 @@ export class ResponseUserService {
     }
 
     await prisma.$transaction(async (prisma) => {
-      await prisma.attendance_health_result.create({
+      await prisma.attendanceHealthResult.create({
         data: {
           user_id: validateData.user_id,
           attendance_status: validateData.attendance_status,
