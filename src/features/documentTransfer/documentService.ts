@@ -116,8 +116,8 @@ export class DocumentService {
 
     const filePath1 = path.join("./public", "Kumpulan Data Karyawan.xlsx");
     const filePath = pathToFileUrl(
-      "/public/Kumpulan data Karyawan.xlsx" || process.env.API_URL,
-      "localhost:3030"
+      "/public/Kumpulan data Karyawan.xlsx",
+      process.env.API_URL || "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);
 
@@ -156,52 +156,69 @@ export class DocumentService {
       if (user[1] === undefined) {
         break;
       }
+      await prisma.$transaction(async (prisma) => {
+        const company = await prisma.company.findFirst({
+          where: {
+            name: user[4],
+          },
+        });
 
-      const company = await prisma.company.findFirst({
-        where: {
-          name: user[4],
-        },
-      });
+        const jobPosition = await prisma.jobPosition.findFirst({
+          where: {
+            name: user[5],
+          },
+        });
 
-      const jobPosition = await prisma.jobPosition.findFirst({
-        where: {
-          name: user[5],
-        },
-      });
+        const employmentStatus = await prisma.employmentStatus.findFirst({
+          where: {
+            name: user[6],
+          },
+        });
 
-      const employmentStatus = await prisma.employmentStatus.findFirst({
-        where: {
-          name: user[6],
-        },
-      });
+        const department = await prisma.department.findFirst({
+          where: {
+            name: user[7],
+          },
+        });
 
-      const department = await prisma.department.findFirst({
-        where: {
-          name: user[7],
-        },
-      });
+        const findUser = await prisma.user.findFirst({
+          where: {
+            phone_number: user[2],
+            deleted_at: null,
+          },
+        });
 
-      const passwordDefault = await password_generator(
-        user[1] as string,
-        user[3] as Date
-      );
+        if (findUser) {
+          throw new ErrorResponse(
+            "There Are User Phone number already exists or account has been created",
+            400,
+            ["phone_number"],
+            "PHONE_NUMBER_ALREADY_EXISTS"
+          );
+        }
 
-      const hashedPassword = await hashPassword(passwordDefault);
+        const passwordDefault = await password_generator(
+          user[1] as string,
+          user[3] as Date
+        );
 
-      const userData = {
-        full_name: user[1] as string,
-        phone_number: user[2] as string,
-        birth_date: user[3] as Date,
-        password: hashedPassword,
-        company_id: company?.company_id as number,
-        job_position_id: jobPosition?.job_position_id as number,
-        employment_status_id: employmentStatus?.employment_status_id as number,
-        department_id: department?.department_id as number,
-        role_id: 3,
-      };
+        const hashedPassword = await hashPassword(passwordDefault);
+        const userData = {
+          full_name: user[1] as string,
+          phone_number: user[2] as string,
+          birth_date: user[3] as Date,
+          password: hashedPassword,
+          company_id: company?.company_id as number,
+          job_position_id: jobPosition?.job_position_id as number,
+          employment_status_id:
+            employmentStatus?.employment_status_id as number,
+          department_id: department?.department_id as number,
+          role_id: 3,
+        };
 
-      await prisma.user.create({
-        data: userData,
+        await prisma.user.create({
+          data: userData,
+        });
       });
     }
 
@@ -248,31 +265,37 @@ export class DocumentService {
 
     worksheet.addRow([]);
 
-    // Add headers for reference data starting from column J
     worksheet.getColumn(10).values = [
       "List Company",
       ...listCompany.map((company) => company.name),
     ];
+    worksheet.getColumn(10).width = 35;
+
     worksheet.getColumn(11).values = [
       "List Job Position",
       ...listJobPosition.map((job) => job.name),
     ];
+    worksheet.getColumn(11).width = 30;
+
     worksheet.getColumn(12).values = [
       "List Employment Status",
       ...listEmploymentStatus.map((status) => status.name),
     ];
+    worksheet.getColumn(12).width = 30;
+
     worksheet.getColumn(13).values = [
       "List Department",
       ...listDepartment.map((department) => department.name),
     ];
+    worksheet.getColumn(13).width = 30;
 
     const filePath1 = path.join(
       "./public",
       "Template Import Data Karyawan.xlsx"
     );
     const filePath = pathToFileUrl(
-      "public/Template Import Data Karyawan.xlsx" || process.env.API_URL,
-      "localhost:3030"
+      "public/Template Import Data Karyawan.xlsx",
+      process.env.API_URL || "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);
 
@@ -290,7 +313,7 @@ export class DocumentService {
       data
     );
 
-    const fdm = await prisma.attendance_health_result.findMany({
+    const fdm = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: validateData.customDateFrom,
@@ -385,10 +408,10 @@ export class DocumentService {
       { header: "Full Name", key: "full_name", width: 25 },
       { header: "Phone Number", key: "phone_number", width: 15 },
       { header: "Birth Date", key: "birth_date", width: 15 },
-      { header: "Company", key: "company", width: 15 },
-      { header: "Job Position", key: "job_position", width: 15 },
-      { header: "Employment Status", key: "employment_status", width: 15 },
-      { header: "Department", key: "department", width: 15 },
+      { header: "Company", key: "company", width: 30 },
+      { header: "Job Position", key: "job_position", width: 30 },
+      { header: "Employment Status", key: "employment_status", width: 30 },
+      { header: "Department", key: "department", width: 30 },
     ];
 
     // Kolom Pertanyaan Dinamis
@@ -429,8 +452,8 @@ export class DocumentService {
 
     const filePath1 = path.join("./public", "Export Data FDM Karyawan.xlsx");
     const filePath = pathToFileUrl(
-      "public/Export Data FDM Karyawan.xlsx" || process.env.API_URL,
-      "localhost:3030"
+      "public/Export Data FDM Karyawan.xlsx",
+      process.env.API_URL || "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);
 
