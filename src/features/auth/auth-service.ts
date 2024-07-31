@@ -32,7 +32,8 @@ export class AuthService {
           {
             phone_number: validateData.email_or_phone_number,
           },
-        ]
+        ],
+        deleted_at: null,
       },
       select: {
         user_id: true,
