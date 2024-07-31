@@ -1,4 +1,4 @@
-import { Attendance_health_result, Result } from "@prisma/client";
+import { AttendanceHealthResult, Result } from "@prisma/client";
 
 export type GetFDMRequest = {
   adminUserId: string;
@@ -13,7 +13,7 @@ export type GetFDMRequest = {
   attendance_health_result_id?: number;
 };
 
-export type GetFDMResponse = Attendance_health_result[];
+export type GetFDMResponse = AttendanceHealthResult[];
 
 export type GetMyFDMRequest = {
   startDate?: Date;
@@ -21,7 +21,7 @@ export type GetMyFDMRequest = {
   user_id: string;
 };
 
-export type GetMyFDMResponse = Attendance_health_result[];
+export type GetMyFDMResponse = AttendanceHealthResult[];
 
 export type ResultKey = Result;
 
