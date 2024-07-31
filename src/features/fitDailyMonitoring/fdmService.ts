@@ -51,7 +51,7 @@ export class FdmService {
       adminRole.role.name !== "Admin" &&
       adminRole.role.name !== "Full Viewer"
     ) {
-      fdm = await prisma.attendance_health_result.findMany({
+      fdm = await prisma.attendanceHealthResult.findMany({
         where: {
           created_at: {
             gte: validateData.startDate,
@@ -100,7 +100,7 @@ export class FdmService {
       (adminRole && adminRole.role.name === "Full Viewer") ||
       (adminRole && adminRole.role.name === "Admin")
     ) {
-      fdm = await prisma.attendance_health_result.findMany({
+      fdm = await prisma.attendanceHealthResult.findMany({
         where: {
           created_at: {
             gte: validateData.startDate,
@@ -146,7 +146,7 @@ export class FdmService {
         },
       });
     }
-    fdm = await prisma.attendance_health_result.findMany({
+    fdm = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: validateData.startDate,
@@ -196,7 +196,7 @@ export class FdmService {
 
   static async getMyFDM(data: GetMyFDMRequest): Promise<GetMyFDMResponse> {
     const validateData = Validation.validate(FDMValidation.MY_FDM, data);
-    const myFdm = await prisma.attendance_health_result.findMany({
+    const myFdm = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: validateData.startDate,
@@ -240,7 +240,7 @@ export class FdmService {
 
   static async countResult(data: GetFDMCountResultRequest) {
     const validateData = Validation.validate(FDMValidation.COUNT_RESULT, data);
-    const resultFit = await prisma.attendance_health_result.count({
+    const resultFit = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT",
         created_at: {
@@ -258,7 +258,7 @@ export class FdmService {
       },
     });
 
-    const resultFitFollowUp = await prisma.attendance_health_result.count({
+    const resultFitFollowUp = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT_FOLLOW_UP",
         created_at: {
@@ -276,7 +276,7 @@ export class FdmService {
       },
     });
 
-    const resultUnfit = await prisma.attendance_health_result.count({
+    const resultUnfit = await prisma.attendanceHealthResult.count({
       where: {
         result: "UNFIT",
         created_at: {
@@ -306,7 +306,7 @@ export class FdmService {
       data
     );
 
-    const countFilledToday = await prisma.attendance_health_result.count({
+    const countFilledToday = await prisma.attendanceHealthResult.count({
       where: {
         created_at: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
@@ -330,7 +330,7 @@ export class FdmService {
       data
     );
 
-    const usersFilledToday = await prisma.attendance_health_result.findMany({
+    const usersFilledToday = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
           gte: new Date(new Date().setHours(0, 0, 0, 0)),
