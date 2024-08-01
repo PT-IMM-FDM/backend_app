@@ -40,7 +40,11 @@ export class UserValidation {
   });
   
   static readonly UPDATE_PASSWORD: ZodType = z.object({
-    old_password: z.string().min(8, "Password must be at least 8 characters"),
-    new_password: z.string().min(8, "Password must be at least 8 characters"),
+    old_password: z.string().min(8, "Password must be at least 8 characters").max(20, "Max password length is 20 characters"),
+    new_password: z.string().min(8, "Password must be at least 8 characters").max(20, "Max password length is 20 characters"),
+  });
+
+  static readonly RESET_PASSWORD: ZodType = z.object({
+    user_id: z.string(),
   });
 }
