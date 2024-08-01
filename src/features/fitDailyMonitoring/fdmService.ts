@@ -80,6 +80,7 @@ export class FdmService {
             employment_status: { select: { name: true } },
           },
         },
+        attachment_health_file: true,
       },
     });
 
