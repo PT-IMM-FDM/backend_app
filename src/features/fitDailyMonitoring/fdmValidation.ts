@@ -46,4 +46,9 @@ export class FDMValidation {
   static readonly ADD_ATTACHMENT_FILE: ZodType = z.object({
     attendance_health_result_id: z.number(),
   });
+
+  static readonly DELETE_ATTACHMENT_FILE: ZodType = z.object({
+    attendance_health_result_id: z.number(),
+    attendance_health_file_attachment_id: z.number(),
+  });
 }

@@ -26,6 +26,7 @@ export type GetMyFDMResponse = AttendanceHealthResult[];
 export type ResultKey = Result;
 
 export type GetFDMCountResultRequest = {
+  admin_user_id: string;
   user_id?: string;
   startDate?: Date;
   endDate?: Date;
@@ -36,13 +37,15 @@ export type GetFDMCountResultRequest = {
 };
 
 export type GetFDMCountFilledTodayRequest = {
+  admin_user_id: string;
   job_position_id?: number[];
   employment_status_id?: number[];
   department_id?: number[];
   company_id?: number[];
 }
 
-export type WhoFilledTodayRequest = {
+export type WhoNotFilledTodayRequest = {
+  admin_user_id: string;
   job_position_id?: number[];
   employment_status_id?: number[];
   department_id?: number[];
@@ -52,4 +55,9 @@ export type WhoFilledTodayRequest = {
 export type addAttachmentFileRequest = {
   attendance_health_result_id: number;
   file: Express.Multer.File;
+};
+
+export type deleteAttachmentFileRequest = {
+  attendance_health_result_id: number;
+  attendance_health_file_attachment_id: number;
 };

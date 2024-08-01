@@ -72,9 +72,8 @@ export class UserController {
 
   static async updateUser(req: Request, res: Response, next: NextFunction) {
     try {
-      let updateUser
-      let user_id = req.body.user_id
       const {
+        user_id,
         full_name,
         phone_number,
         email,
@@ -85,32 +84,48 @@ export class UserController {
         role_id,
         is_active,
       } = req.body;
-      if (user_id === undefined) {
-        updateUser = await UserService.updateUser({
-          user_id: res.locals.user.user_id,
-          full_name,
-          phone_number,
-          email
-        });
-      } else if (user_id){
-        updateUser = await UserService.updateUser({
-          user_id,
-          full_name,
-          phone_number,
-          email,
-          company_id,
-          job_position_id,
-          employment_status_id,
-          department_id,
-          role_id,
-          is_active,
-        });
-      }
-      
+      const updateUser = await UserService.updateUser({
+        user_id,
+        full_name,
+        phone_number,
+        email,
+        company_id,
+        job_position_id,
+        employment_status_id,
+        department_id,
+        role_id,
+        is_active,
+      });
+
       return res.status(200).json({
         success: true,
         data: updateUser,
         message: "User updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user_id = res.locals.user.user_id;
+      const {
+        full_name,
+        phone_number,
+        email,
+      } = req.body;
+      const updateUser = await UserService.updateUser({
+        user_id,
+        full_name,
+        phone_number,
+        email,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: updateUser,
+        message: "My profile updated successfully",
       });
     } catch (error) {
       next(error);
@@ -138,6 +153,19 @@ export class UserController {
       return res.status(200).json({
         success: true,
         message: "Password updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user_id = req.params.user_id;
+      await UserService.resetPassword({ user_id });
+      return res.status(200).json({
+        success: true,  
+        message: "Password reset successfully",
       });
     } catch (error) {
       next(error);

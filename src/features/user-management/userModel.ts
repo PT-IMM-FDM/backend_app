@@ -70,3 +70,7 @@ export type UpdatePassword = {
   old_password: string;
   new_password: string;
 }
+
+export type ResetPassword = {
+  user_id: string;
+}

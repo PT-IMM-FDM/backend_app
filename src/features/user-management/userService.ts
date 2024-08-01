@@ -8,6 +8,7 @@ import {
   DeleteUserRequest,
   GetUserRequest,
   GetUserResponse,
+  ResetPassword,
   UpdatePassword,
   UpdateUserRequest,
   UpdateUserResponse,
@@ -320,6 +321,48 @@ export class UserService {
     await prisma.user.update({
       where: {
         user_id: data.user_id,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+  }
+
+  static async resetPassword(data: ResetPassword) {
+    const validateData = Validation.validate(
+      UserValidation.RESET_PASSWORD,
+      data
+    );
+
+    const userData = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.user_id,
+      },
+      select: {
+        full_name: true,
+        birth_date: true,
+      },
+    });
+
+    if (!userData) {
+      throw new ErrorResponse(
+        "User not found",
+        404,
+        ["user_id"],
+        "USER_NOT_FOUND"
+      );
+    }
+
+    const generate_password = await password_generator(
+      userData.full_name,
+      userData.birth_date
+    );
+
+    const hashedPassword = await hashPassword(generate_password);
+
+    await prisma.user.update({
+      where: {
+        user_id: validateData.user_id,
       },
       data: {
         password: hashedPassword,
