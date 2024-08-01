@@ -123,6 +123,7 @@ export class FdmController {
   static async countResult(req: Request, res: Response, next: NextFunction) {
     try {
       const { startDate, endDate, uid, jpid, esid, cid, did } = req.query;
+      const adminUserId = res.locals.user.user_id;
 
       let formattedStartDate;
       let formattedEndDate;
@@ -136,6 +137,7 @@ export class FdmController {
       }
 
       const countResult = await FdmService.countResult({
+        admin_user_id: adminUserId,
         user_id: uid as string,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
@@ -162,8 +164,10 @@ export class FdmController {
   ) {
     try {
       const { jpid, esid, did, cid } = req.query;
+      const adminUserId = res.locals.user.user_id;
 
       const countFilledToday = await FdmService.countFilledToday({
+        admin_user_id: adminUserId,
         job_position_id: parseArrayParam(jpid),
         employment_status_id: parseArrayParam(esid),
         department_id: parseArrayParam(did),
@@ -187,8 +191,10 @@ export class FdmController {
   ) {
     try {
       const { jpid, esid, did, cid } = req.query;
+      const adminUserId = res.locals.user.user_id;
 
       const whoFilledToday = await FdmService.getUsersNotFilledToday({
+        admin_user_id: adminUserId,
         job_position_id: parseArrayParam(jpid),
         employment_status_id: parseArrayParam(esid),
         department_id: parseArrayParam(did),
@@ -214,9 +220,9 @@ export class FdmController {
       const attendance_health_result_id = parseInt(
         req.params.attendance_health_result_id
       );
-      const file = req.file;
+      const fdm_attachment_file = req.file as Express.Multer.File;
 
-      if (!file) {
+      if (!fdm_attachment_file) {
         throw new ErrorResponse(
           "File not found",
           400,
@@ -227,7 +233,7 @@ export class FdmController {
 
       await FdmService.addAttachmentFile({
         attendance_health_result_id,
-        file,
+        file: fdm_attachment_file,
       });
 
       return res.status(200).json({

@@ -10,7 +10,7 @@ import {
   GetMyFDMRequest,
   GetMyFDMResponse,
   ResultKey,
-  WhoFilledTodayRequest,
+  WhoNotFilledTodayRequest,
   addAttachmentFileRequest,
 } from "./fdmModel";
 
@@ -24,174 +24,62 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
 
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
-    let resultValue;
-    if (data.result) {
-      resultValue = resultEnumMapping[data.result as ResultKey];
-    }
+    const resultValue = data.result
+      ? resultEnumMapping[data.result as ResultKey]
+      : undefined;
+
     const validateData = Validation.validate(FDMValidation.GET_FDM, data);
 
     const adminRole = await prisma.user.findUnique({
-      where: {
-        user_id: validateData.adminUserId,
-      },
+      where: { user_id: validateData.adminUserId },
       select: {
-        role: {
-          select: {
-            name: true,
-          },
-        },
+        role: { select: { name: true } },
         department_id: true,
         company_id: true,
       },
     });
 
-    let fdm;
-
-    if (
+    const isViewer =
       adminRole &&
       adminRole.role.name !== "Admin" &&
-      adminRole.role.name !== "Full Viewer"
-    ) {
-      fdm = await prisma.attendanceHealthResult.findMany({
-        where: {
-          created_at: {
-            gte: validateData.startDate,
-            lte: validateData.endDate,
-          },
-          result: resultValue,
-          user: {
-            user_id: validateData.user_id,
-            job_position_id: { in: validateData.job_position_id },
-            department_id: adminRole.department_id,
-            company_id: adminRole.company_id,
-            employment_status_id: { in: validateData.employment_status_id },
-            deleted_at: null,
-          },
-          attendance_health_result_id: validateData.attendance_health_result_id,
-        },
-        include: {
-          user: {
-            select: {
-              full_name: true,
-              job_position: {
-                select: {
-                  name: true,
-                },
-              },
-              department: {
-                select: {
-                  name: true,
-                },
-              },
-              company: {
-                select: {
-                  name: true,
-                },
-              },
-              employment_status: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    } else if (
-      (adminRole && adminRole.role.name === "Full Viewer") ||
-      (adminRole && adminRole.role.name === "Admin")
-    ) {
-      fdm = await prisma.attendanceHealthResult.findMany({
-        where: {
-          created_at: {
-            gte: validateData.startDate,
-            lte: validateData.endDate,
-          },
-          result: resultValue,
-          user: {
-            user_id: validateData.user_id,
-            job_position_id: { in: validateData.job_position_id },
-            department_id: { in: validateData.department_id },
-            company_id: { in: validateData.company_id },
-            employment_status_id: { in: validateData.employment_status_id },
-            deleted_at: null,
-          },
-          attendance_health_result_id: validateData.attendance_health_result_id,
-        },
-        include: {
-          user: {
-            select: {
-              full_name: true,
-              job_position: {
-                select: {
-                  name: true,
-                },
-              },
-              department: {
-                select: {
-                  name: true,
-                },
-              },
-              company: {
-                select: {
-                  name: true,
-                },
-              },
-              employment_status: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-    fdm = await prisma.attendanceHealthResult.findMany({
-      where: {
-        created_at: {
-          gte: validateData.startDate,
-          lte: validateData.endDate,
-        },
-        result: resultValue,
-        user: {
-          user_id: validateData.user_id,
-          job_position_id: { in: validateData.job_position_id },
-          department_id: { in: validateData.department_id },
-          company_id: { in: validateData.company_id },
-          employment_status_id: { in: validateData.employment_status_id },
-          deleted_at: null,
-        },
-        attendance_health_result_id: validateData.attendance_health_result_id,
+      adminRole.role.name !== "Full Viewer";
+
+    const whereClause = {
+      created_at: {
+        gte: validateData.startDate,
+        lte: validateData.endDate,
       },
+      result: resultValue,
+      user: {
+        user_id: validateData.user_id,
+        job_position_id: { in: validateData.job_position_id },
+        department_id: isViewer
+          ? adminRole.department_id
+          : { in: validateData.department_id },
+        company_id: isViewer
+          ? adminRole.company_id
+          : { in: validateData.company_id },
+        employment_status_id: { in: validateData.employment_status_id },
+        deleted_at: null,
+      },
+      attendance_health_result_id: validateData.attendance_health_result_id,
+    };
+
+    const fdm = await prisma.attendanceHealthResult.findMany({
+      where: whereClause,
       include: {
         user: {
           select: {
             full_name: true,
-            job_position: {
-              select: {
-                name: true,
-              },
-            },
-            department: {
-              select: {
-                name: true,
-              },
-            },
-            company: {
-              select: {
-                name: true,
-              },
-            },
-            employment_status: {
-              select: {
-                name: true,
-              },
-            },
+            job_position: { select: { name: true } },
+            department: { select: { name: true } },
+            company: { select: { name: true } },
+            employment_status: { select: { name: true } },
           },
         },
       },
     });
+
     return fdm;
   }
 
@@ -252,6 +140,33 @@ export class FdmService {
 
   static async countResult(data: GetFDMCountResultRequest) {
     const validateData = Validation.validate(FDMValidation.COUNT_RESULT, data);
+
+    const admin = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.admin_user_id,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            department_id: true,
+          },
+        },
+      },
+    });
+
+    const jobPositionIds = validateData.job_position_id;
+    const companyIds = validateData.company_id;
+    const employmentStatusIds = validateData.employment_status_id;
+    const departmentIds =
+      admin?.role.name === "Viewer"
+        ? [admin.department.department_id]
+        : validateData.department_id;
+
     const resultFit = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT",
@@ -261,10 +176,10 @@ export class FdmService {
         },
         user: {
           user_id: validateData.user_id,
-          job_position_id: { in: validateData.job_position_id },
-          department_id: { in: validateData.department_id },
-          company_id: { in: validateData.company_id },
-          employment_status_id: { in: validateData.employment_status_id },
+          job_position_id: { in: jobPositionIds },
+          department_id: { in: departmentIds },
+          company_id: { in: companyIds },
+          employment_status_id: { in: employmentStatusIds },
           deleted_at: null,
         },
       },
@@ -279,10 +194,10 @@ export class FdmService {
         },
         user: {
           user_id: validateData.user_id,
-          job_position_id: { in: validateData.job_position_id },
-          department_id: { in: validateData.department_id },
-          company_id: { in: validateData.company_id },
-          employment_status_id: { in: validateData.employment_status_id },
+          job_position_id: { in: jobPositionIds },
+          department_id: { in: departmentIds },
+          company_id: { in: companyIds },
+          employment_status_id: { in: employmentStatusIds },
           deleted_at: null,
         },
       },
@@ -297,10 +212,10 @@ export class FdmService {
         },
         user: {
           user_id: validateData.user_id,
-          job_position_id: { in: validateData.job_position_id },
-          department_id: { in: validateData.department_id },
-          company_id: { in: validateData.company_id },
-          employment_status_id: { in: validateData.employment_status_id },
+          job_position_id: { in: jobPositionIds },
+          department_id: { in: departmentIds },
+          company_id: { in: companyIds },
+          employment_status_id: { in: employmentStatusIds },
           deleted_at: null,
         },
       },
@@ -318,6 +233,32 @@ export class FdmService {
       data
     );
 
+    const admin = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.admin_user_id,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            department_id: true,
+          },
+        },
+      },
+    });
+
+    const jobPositionIds = validateData.job_position_id;
+    const companyIds = validateData.company_id;
+    const employmentStatusIds = validateData.employment_status_id;
+    const departmentIds =
+      admin?.role.name === "Viewer"
+        ? [admin.department.department_id]
+        : validateData.department_id;
+
     const countFilledToday = await prisma.attendanceHealthResult.count({
       where: {
         created_at: {
@@ -325,10 +266,10 @@ export class FdmService {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
         user: {
-          job_position_id: { in: validateData.job_position_id },
-          department_id: { in: validateData.department_id },
-          company_id: { in: validateData.company_id },
-          employment_status_id: { in: validateData.employment_status_id },
+          job_position_id: { in: jobPositionIds },
+          department_id: { in: departmentIds },
+          company_id: { in: companyIds },
+          employment_status_id: { in: employmentStatusIds },
           deleted_at: null,
         },
       },
@@ -336,11 +277,42 @@ export class FdmService {
     return countFilledToday;
   }
 
-  static async getUsersNotFilledToday(data: WhoFilledTodayRequest) {
+  static async getUsersNotFilledToday(data: WhoNotFilledTodayRequest) {
     const validateData = Validation.validate(
       FDMValidation.WHO_FILLED_TODAY,
       data
     );
+
+    const admin = await prisma.user.findUnique({
+      where: {
+        user_id: validateData.admin_user_id,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            department_id: true,
+          },
+        },
+        company: {
+          select: {
+            company_id: true,
+          },
+        },
+      },
+    });
+
+    const jobPositionIds = validateData.job_position_id;
+    const companyIds = validateData.company_id;
+    const employmentStatusIds = validateData.employment_status_id;
+    const departmentIds =
+      admin?.role.name === "Viewer"
+        ? [admin.department.department_id]
+        : validateData.department_id;
 
     const usersFilledToday = await prisma.attendanceHealthResult.findMany({
       where: {
@@ -349,10 +321,10 @@ export class FdmService {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
         user: {
-          job_position_id: { in: validateData.job_position_id },
-          department_id: { in: validateData.department_id },
-          company_id: { in: validateData.company_id },
-          employment_status_id: { in: validateData.employment_status_id },
+          job_position_id: { in: jobPositionIds },
+          department_id: { in: departmentIds },
+          company_id: { in: companyIds },
+          employment_status_id: { in: employmentStatusIds },
           deleted_at: null,
         },
       },
@@ -368,10 +340,10 @@ export class FdmService {
         user_id: {
           notIn: userIdsFilledToday,
         },
-        job_position_id: { in: validateData.job_position_id },
-        department_id: { in: validateData.department_id },
-        company_id: { in: validateData.company_id },
-        employment_status_id: { in: validateData.employment_status_id },
+        job_position_id: { in: jobPositionIds },
+        department_id: { in: departmentIds },
+        company_id: { in: companyIds },
+        employment_status_id: { in: employmentStatusIds },
         deleted_at: null,
       },
       select: {

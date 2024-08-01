@@ -3,6 +3,7 @@ import { JwtMiddleware } from "../../middlewares/jwt_middleware";
 import { questionRoute } from "./question";
 import { FdmController } from "./fdmController";
 import { responseUserRoute } from "./responseUser";
+import { upload } from "../../middlewares/multer";
 
 const fdmRoute = Router();
 
@@ -32,6 +33,7 @@ fdmRoute.get("/usersNotFilledToday", [
 fdmRoute.post("/:attendance_health_result_id/addAttachment", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOnly,
+  upload.single("fdm_attachment_file"),
   FdmController.addAttachmentFile,
 ]);
 
