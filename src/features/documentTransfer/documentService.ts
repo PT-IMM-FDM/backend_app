@@ -149,9 +149,15 @@ export class DocumentService {
         "INVALID_WORKSHEET_NAME"
       );
     }
+
+    const role = await prisma.role.findFirst({
+      where: {
+        name: "User",
+      },
+    });
     const usersData = usersWorksheet.getSheetValues();
 
-    for (let i = 2; i < usersData.length; i++) {
+    for (let i = 3; i < usersData.length; i++) {
       const user = usersData[i] as { [key: number]: any };
       if (user[1] === undefined) {
         break;
@@ -213,7 +219,7 @@ export class DocumentService {
           employment_status_id:
             employmentStatus?.employment_status_id as number,
           department_id: department?.department_id as number,
-          role_id: 3,
+          role_id: role?.role_id as number,
         };
 
         await prisma.user.create({
@@ -221,7 +227,10 @@ export class DocumentService {
         });
       });
       // Remove the file after the data is imported
-      fs.rmSync("./public/uploads/users_file/", { recursive: true, force: true });
+      fs.rmSync("./public/uploads/users_file/", {
+        recursive: true,
+        force: true,
+      });
     }
 
     return "Users imported successfully";
@@ -250,19 +259,46 @@ export class DocumentService {
       },
     });
     const listJobPosition = await prisma.jobPosition.findMany({
+      where: {
+        deleted_at: null,
+      },
       select: {
         name: true,
       },
     });
     const listEmploymentStatus = await prisma.employmentStatus.findMany({
+      where: {
+        deleted_at: null,
+      },
       select: {
         name: true,
       },
     });
     const listDepartment = await prisma.department.findMany({
+      where: {
+        deleted_at: null
+      },
       select: {
         name: true,
       },
+    });
+
+    const exampleRow = worksheet.addRow({
+      full_name: "Nama Lengkap",
+      phone_number: "'081234(pakai tanda petik satu didepan)",
+      birth_date: "[dd/mm/yyyy]",
+      company: "Nama perusahaan sesuaikan list dikanan",
+      job_position: "Nama posisi kerja sesuaikan list dikanan",
+      employment_status: "Status kerja sesuaikan list dikanan",
+      department: "Nama departemen sesuaikan list dikanan",
+    });
+    
+    exampleRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'D3D3D3' }
+      };
     });
 
     worksheet.addRow([]);
