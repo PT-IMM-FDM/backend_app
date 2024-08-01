@@ -56,3 +56,8 @@ export type addAttachmentFileRequest = {
   attendance_health_result_id: number;
   file: Express.Multer.File;
 };
+
+export type deleteAttachmentFileRequest = {
+  attendance_health_result_id: number;
+  attendance_health_file_attachment_id: number;
+};

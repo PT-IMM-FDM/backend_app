@@ -12,8 +12,10 @@ import {
   ResultKey,
   WhoNotFilledTodayRequest,
   addAttachmentFileRequest,
+  deleteAttachmentFileRequest,
 } from "./fdmModel";
 import { pathToFileUrl } from "../../utils";
+import { deleteFile } from "../../utils/delete_file";
 
 type ResultEnum = ResultKey;
 
@@ -392,6 +394,42 @@ export class FdmService {
           data.file.path,
           process.env.SERVER_URL || "localhost:3030"
         ),
+      },
+    });
+
+    return attachment;
+  }
+
+  static async deleteAttachmentFile(data: deleteAttachmentFileRequest) {
+    const validateData = Validation.validate(
+      FDMValidation.DELETE_ATTACHMENT_FILE,
+      data
+    );
+
+    const findAttachment =
+      await prisma.attendanceHealthFileAttachment.findUnique({
+        where: {
+          attendance_health_result_id: validateData.attendance_health_result_id,
+          attendance_health_file_attachment_id:
+            validateData.attendance_health_file_attachment_id,
+        },
+      });
+
+    if (!findAttachment) {
+      throw new ErrorResponse(
+        "File not found",
+        404,
+        ["file"],
+        "FILE_NOT_FOUND"
+      );
+    }
+
+    await deleteFile(findAttachment.file_url);
+
+    const attachment = await prisma.attendanceHealthFileAttachment.delete({
+      where: {
+        attendance_health_file_attachment_id:
+          validateData.attendance_health_file_attachment_id,
       },
     });
 

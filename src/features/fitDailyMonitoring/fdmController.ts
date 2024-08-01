@@ -244,4 +244,31 @@ export class FdmController {
       next(error);
     }
   }
+
+  static async deleteAttachmentFile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const attendance_health_result_id = parseInt(
+        req.params.attendance_health_result_id
+      );
+      const attendance_health_file_attachment_id = parseInt(
+        req.params.attendance_health_file_attachment_id
+      );
+
+      await FdmService.deleteAttachmentFile({
+        attendance_health_result_id,
+        attendance_health_file_attachment_id,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Attachment file deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

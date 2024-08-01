@@ -36,5 +36,13 @@ fdmRoute.post("/:attendance_health_result_id/addAttachment", [
   upload.single("fdm_attachment_file"),
   FdmController.addAttachmentFile,
 ]);
+fdmRoute.delete(
+  "/:attendance_health_result_id/deleteAttachment/:attendance_health_file_attachment_id",
+  [
+    JwtMiddleware.verifyToken,
+    JwtMiddleware.adminOnly,
+    FdmController.deleteAttachmentFile,
+  ]
+);
 
 export default fdmRoute;
