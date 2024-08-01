@@ -30,7 +30,7 @@ fdmRoute.get("/usersNotFilledToday", [
   JwtMiddleware.adminOrViewer,
   FdmController.getUsersNotFilledToday,
 ]);
-fdmRoute.post("/:attendance_health_result_id/addAttachment", [
+fdmRoute.post("/addAttachment/:attendance_health_result_id", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOnly,
   upload.single("fdm_attachment_file"),
