@@ -384,6 +384,33 @@ export class FdmService {
       data
     );
 
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (byte)
+    const MAX_PDF_COUNT = 3;
+
+    if (data.file.size > MAX_FILE_SIZE) {
+      throw new ErrorResponse(
+        "File size exceeds the maximum limit of 5MB.",
+        400,
+        ["file"],
+        "FILE_SIZE_TOO_LARGE"
+      );
+    }
+
+    const existingPdfCount = await prisma.attendanceHealthFileAttachment.count({
+      where: {
+        attendance_health_result_id: validateData.attendance_health_result_id,
+      },
+    });
+
+    if (existingPdfCount >= MAX_PDF_COUNT) {
+      throw new ErrorResponse(
+        "Maximum number of PDF files (3)",
+        400,
+        ["file"],
+        "MAX_PDF_COUNT_EXCEEDED"
+      );
+    }
+
     const attachment = await prisma.attendanceHealthFileAttachment.create({
       data: {
         attendance_health_result_id: validateData.attendance_health_result_id,
