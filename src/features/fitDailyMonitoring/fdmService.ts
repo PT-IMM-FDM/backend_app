@@ -13,6 +13,7 @@ import {
   WhoNotFilledTodayRequest,
   addAttachmentFileRequest,
 } from "./fdmModel";
+import { pathToFileUrl } from "../../utils";
 
 type ResultEnum = ResultKey;
 
@@ -381,14 +382,19 @@ export class FdmService {
       data
     );
 
-    await prisma.attendanceHealthFileAttachment.create({
+    const attachment = await prisma.attendanceHealthFileAttachment.create({
       data: {
         attendance_health_result_id: validateData.attendance_health_result_id,
         file_name: data.file.filename,
         file_size: data.file.size,
         file_type: data.file.mimetype,
-        file_url: data.file.path,
+        file_url: pathToFileUrl(
+          data.file.path,
+          process.env.SERVER_URL || "localhost:3030"
+        ),
       },
     });
+
+    return attachment;
   }
 }
