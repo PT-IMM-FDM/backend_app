@@ -20,6 +20,7 @@ export class FDMValidation {
   });
 
   static readonly COUNT_RESULT: ZodType = z.object({
+    admin_user_id: z.string(),
     startDate: z.date().optional(),
     endDate: z.date().optional(),
     user_id: z.string().array().optional(),
@@ -30,6 +31,7 @@ export class FDMValidation {
   });
 
   static readonly COUNT_FILLED_TODAY: ZodType = z.object({
+    admin_user_id: z.string(),
     job_position_id: z.number().array().optional(),
     employment_status_id: z.number().array().optional(),
     department_id: z.number().array().optional(),
@@ -37,6 +39,7 @@ export class FDMValidation {
   });
 
   static readonly WHO_FILLED_TODAY: ZodType = z.object({
+    admin_user_id: z.string(),
     job_position_id: z.number().array().optional(),
     employment_status_id: z.number().array().optional(),
     department_id: z.number().array().optional(),
