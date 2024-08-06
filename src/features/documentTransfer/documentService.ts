@@ -36,16 +36,21 @@ export class DocumentService {
         },
         company: {
           name: validateData.company,
+          deleted_at: null,
         },
         job_position: {
           name: validateData.job_position,
+          deleted_at: null,
         },
         department: {
           name: validateData.department,
+          deleted_at: null,
         },
         employment_status: {
           name: validateData.employment_status,
+          deleted_at: null,
         },
+        deleted_at: null,
       },
       select: {
         full_name: true,
@@ -163,6 +168,7 @@ export class DocumentService {
         break;
       }
       await prisma.$transaction(async (prisma) => {
+        const userBirthDate = new Date(user[3]);
         const company = await prisma.company.findFirst({
           where: {
             name: user[4],
@@ -205,14 +211,15 @@ export class DocumentService {
 
         const passwordDefault = await password_generator(
           user[1] as string,
-          user[3] as Date
+          userBirthDate
+          
         );
 
         const hashedPassword = await hashPassword(passwordDefault);
         const userData = {
           full_name: user[1] as string,
           phone_number: user[2] as string,
-          birth_date: user[3] as Date,
+          birth_date: userBirthDate,
           password: hashedPassword,
           company_id: company?.company_id as number,
           job_position_id: jobPosition?.job_position_id as number,
