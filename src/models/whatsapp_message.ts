@@ -10,6 +10,7 @@ export type dataFdmTodayReport = {
 export type dataFdmUnfit = {
   full_name : string;
   phone_number : string;
+  job_position : string;
   department : string;
   description : string;
 }

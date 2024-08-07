@@ -3,6 +3,24 @@ import qrcode from "qrcode-terminal";
 import { logger } from "../applications";
 import { dataFdmTodayReport, dataFdmUnfit } from "../models/whatsapp_message";
 
+const month: { [key: number]: string } = {
+  0: "Januari",
+  1: "Februari",
+  2: "Maret",
+  3: "April",
+  4: "Mei",
+  5: "Juni",
+  6: "Juli",
+  7: "Agustus",
+  8: "September",
+  9: "Oktober",
+  10: "November",
+  11: "Desember",
+};
+const date = new Date();
+const today = `${date.getDate()} ${month[date.getMonth()]} ${date.getFullYear()}`;
+
+
 export const clientWhatsapp = new Client({
   authStrategy: new LocalAuth(),
   restartOnAuthFail: true,
@@ -24,17 +42,21 @@ clientWhatsapp.on("ready", () => {
   logger.info(`Client is ready! || ${new Date()}`);
 });
 
+clientWhatsapp.on("message", async (msg) => {
+  if (msg.body === "ping") {
+    msg.reply("pong");
+  }
+});
+
 const sendMessage = async (phone_number: string, message: string) => {
   try {
     let phone_numberNew;
     if (phone_number.startsWith("0")) {
-      phone_numberNew = phone_number.substring(1);
-      const chat = await clientWhatsapp.getChatById(`62${phone_numberNew}@c.us`);
-      await chat.sendMessage(message);
+      phone_numberNew = "62" + phone_number.substring(1) + "@c.us";
+      await clientWhatsapp.sendMessage(phone_numberNew, message);
     } else {
-      phone_numberNew = phone_number;
-      const chat = await clientWhatsapp.getChatById(`${phone_numberNew}@c.us`);
-      await chat.sendMessage(message);
+      phone_numberNew = phone_number + "@c.us";
+      await clientWhatsapp.sendMessage(phone_numberNew, message);
     }
   } catch (error) {
     console.log(error);
@@ -68,10 +90,19 @@ export const sendMessageFdmUnfit = async (
   data_fdm: dataFdmUnfit
 ) => {
   const message = `
-🚨 *karyawan yang unfit hari ini.*
+👷🏼‍♂️ Semangat Pagi
+🚨 Status karyawan *UNFIT*
+Tanggal: ${today}
 *${data_fdm.full_name}*
 *${data_fdm.phone_number}*
+*${data_fdm.job_position}*
 *${data_fdm.department}*
+
+Occupational Health
+PT Indominco Mandiri
+
+_*Pesan ini dibuat secara otomatis_
+_Jika ada pertanyaan lebih lanjut, silahkan membalas pesan ini_
 `.trim();
   await sendMessage(phone_number, message);
 };

@@ -271,4 +271,52 @@ export class FdmController {
       next(error);
     }
   }
+
+  static async addNote(req: Request, res: Response, next: NextFunction) {
+    try {
+      const attendance_health_result_id = parseInt(
+        req.params.attendance_health_result_id
+      );
+      const { note } = req.body;
+
+      await FdmService.addNote({
+        attendance_health_result_id,
+        note,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Note added successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async mostQuestionAnswered(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { jpid, esid, did, cid } = req.query;
+      const admin_user_id = res.locals.user.user_id;
+
+      const mostQuestionAnswered = await FdmService.mostQuestionAnswered({
+        admin_user_id,
+        job_position_id: parseArrayParam(jpid),
+        employment_status_id: parseArrayParam(esid),
+        department_id: parseArrayParam(did),
+        company_id: parseArrayParam(cid),
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: mostQuestionAnswered,
+        message: "Most question answered fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

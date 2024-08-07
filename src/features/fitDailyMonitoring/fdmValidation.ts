@@ -54,4 +54,17 @@ export class FDMValidation {
     attendance_health_result_id: z.number(),
     attendance_health_file_attachment_id: z.number(),
   });
+
+  static readonly ADD_NOTE : ZodType = z.object({
+    attendance_health_result_id: z.number(),
+    note: z.string().max(255),
+  });
+
+  static readonly MOST_QUESTION_ANSWERED: ZodType = z.object({
+    admin_user_id: z.string(),
+    company_id: z.number().array().optional(),
+    job_position_id: z.number().array().optional(),
+    department_id: z.number().array().optional(),
+    employment_status_id: z.number().array().optional(),
+  });
 }
