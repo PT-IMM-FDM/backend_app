@@ -95,6 +95,11 @@ export class ResponseUserService {
               name: true,
             },
           },
+          job_position: {
+            select: {
+              name: true,
+            },
+          },
           ResponseUser: {
             where: {
               created_at: {
@@ -121,21 +126,54 @@ export class ResponseUserService {
         });
 
         const descriptionString = descriptions.join("\n");
-
-        const phoneNumberOfDepartmentHead = await prisma.user.findMany({
+        
+        const phoneNumberOfOH = await prisma.user.findMany({
           where: {
             role: {
-              name: "Department Head",
+              OR: [
+                {
+                  name: "Admin",
+                },
+                {
+                  name: "Full Viewer",
+                },
+                {
+                  name: "Viewer",
+                },
+              ],
+            },
+            department: {
+              name: "Occupational Health",
             },
           },
           select: {
             phone_number: true,
           },
         });
-        for (let i of phoneNumberOfDepartmentHead) {
-          sendMessageFdmUnfit(i.phone_number, {
+
+        const phoneNumberOfDepartmentHead = await prisma.user.findMany({
+          where: {
+            job_position: {
+              name: "Department Head",
+            },
+            department: {
+              name: user.department.name,
+            },
+          },
+          select: {
+            phone_number: true,
+          },
+        });
+
+        const phoneNumberToNotify = [
+          ...phoneNumberOfOH.map((i) => i.phone_number),
+          ...phoneNumberOfDepartmentHead.map((i) => i.phone_number),
+        ];
+        for (let phoneNumberWhatsapp of phoneNumberToNotify) {
+          sendMessageFdmUnfit(phoneNumberWhatsapp, {
             full_name: user.full_name,
             phone_number: user.phone_number,
+            job_position: user.job_position.name,
             department: user.department.name,
             description: descriptionString,
           });
