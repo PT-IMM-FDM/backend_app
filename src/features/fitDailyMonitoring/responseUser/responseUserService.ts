@@ -126,7 +126,7 @@ export class ResponseUserService {
         });
 
         const descriptionString = descriptions.join("\n");
-        
+
         const phoneNumberOfOH = await prisma.user.findMany({
           where: {
             role: {
@@ -232,6 +232,8 @@ export class ResponseUserService {
             vehicle_hull_number: true,
             result: true,
             recomendation: true,
+            attachment_health_file: true,
+            note: true,
           },
         },
         question: {
