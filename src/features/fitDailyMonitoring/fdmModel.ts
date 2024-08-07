@@ -61,3 +61,16 @@ export type deleteAttachmentFileRequest = {
   attendance_health_result_id: number;
   attendance_health_file_attachment_id: number;
 };
+
+export type addNoteRequest = {
+  attendance_health_result_id: number;
+  note: string;
+};
+
+export type MostQuestionAnswered = {
+  admin_user_id: string;
+  job_position_id?: number[];
+  employment_status_id?: number[];
+  department_id?: number[];
+  company_id?: number[];
+};

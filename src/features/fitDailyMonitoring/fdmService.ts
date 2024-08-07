@@ -9,9 +9,11 @@ import {
   GetFDMResponse,
   GetMyFDMRequest,
   GetMyFDMResponse,
+  MostQuestionAnswered,
   ResultKey,
   WhoNotFilledTodayRequest,
   addAttachmentFileRequest,
+  addNoteRequest,
   deleteAttachmentFileRequest,
 } from "./fdmModel";
 import { pathToFileUrl } from "../../utils";
@@ -462,5 +464,114 @@ export class FdmService {
     });
 
     return attachment;
+  }
+
+  static async addNote(data: addNoteRequest) {
+    const validateData = Validation.validate(FDMValidation.ADD_NOTE, data);
+    const note = await prisma.attendanceHealthResult.update({
+      where: {
+        attendance_health_result_id: validateData.attendance_health_result_id,
+      },
+      data: {
+        note: validateData.note,
+      },
+    });
+    return note;
+  }
+
+  static async mostQuestionAnswered(data: MostQuestionAnswered) {
+    const validateData = Validation.validate(
+      FDMValidation.MOST_QUESTION_ANSWERED,
+      data
+    );
+    const startDate = new Date(new Date().setHours(0, 0, 0, 0));
+    const endDate = new Date(new Date().setHours(23, 59, 59, 999));
+    const jobPositionIds = validateData.job_position_id;
+    const companyIds = validateData.company_id;
+    const employmentStatusIds = validateData.employment_status_id;
+    const departmentIds = validateData.department_id;
+
+    // Step 1: Fetch responses for today
+    const responsesToday = await prisma.responseUser.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+        user: {
+          job_position_id: { in: jobPositionIds },
+          department_id: { in: departmentIds },
+          company_id: { in: companyIds },
+          employment_status_id: { in: employmentStatusIds },
+          deleted_at: null,
+        },
+      },
+      select: {
+        question_id: true,
+        question_answer_id: true,
+        user: {
+          select: {
+            department_id: true,
+          },
+        },
+      },
+    });
+
+    // Count the number of answers per question and answer
+    const questionCounts = responsesToday.reduce((acc, response) => {
+      const questionId = response.question_id;
+      const questionAnswerId = response.question_answer_id;
+      const departmentId = response.user.department_id;
+
+      if (!acc[questionId]) {
+        acc[questionId] = { total: 0, answers: {} };
+      }
+
+      acc[questionId].total += 1;
+
+      if (!acc[questionId].answers[questionAnswerId]) {
+        acc[questionId].answers[questionAnswerId] = {
+          count: 0,
+          byDepartment: {},
+        };
+      }
+
+      acc[questionId].answers[questionAnswerId].count += 1;
+
+      if (
+        !acc[questionId].answers[questionAnswerId].byDepartment[departmentId]
+      ) {
+        acc[questionId].answers[questionAnswerId].byDepartment[
+          departmentId
+        ] = 0;
+      }
+
+      acc[questionId].answers[questionAnswerId].byDepartment[departmentId] += 1;
+
+      return acc;
+    }, {} as { [questionId: string]: { total: number; answers: { [questionAnswerId: string]: { count: number; byDepartment: { [departmentId: number]: number } } } } });
+
+    // Format the results
+    const formattedResults = Object.entries(questionCounts).map(
+      ([questionId, data]) => ({
+        question_id: parseInt(questionId, 10),
+        total: data.total,
+        question_answer: Object.entries(data.answers).map(
+          ([questionAnswerId, answerData]) => ({
+            question_answer_id: parseInt(questionAnswerId, 10),
+            count: answerData.count,
+            department: Object.entries(answerData.byDepartment).map(
+              ([departmentId, count]) => ({
+                department_id: parseInt(departmentId, 10),
+                count,
+              })
+            ),
+          })
+        ),
+      })
+    );
+
+    console.log(formattedResults);
+    return formattedResults;
   }
 }

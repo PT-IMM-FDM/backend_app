@@ -44,5 +44,15 @@ fdmRoute.delete(
     FdmController.deleteAttachmentFile,
   ]
 );
+fdmRoute.put("/:attendance_health_result_id/addNote", [
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOnly,
+  FdmController.addNote,
+]);
+fdmRoute.get("/mostQuestionAnswered", [
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOrViewer,
+  FdmController.mostQuestionAnswered,
+]);
 
 export default fdmRoute;
