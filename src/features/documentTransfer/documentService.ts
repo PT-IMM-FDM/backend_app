@@ -35,19 +35,19 @@ export class DocumentService {
           lte: validateData.date_to,
         },
         company: {
-          name: validateData.company,
+          name: { in: validateData.company },
           deleted_at: null,
         },
         job_position: {
-          name: validateData.job_position,
+          job_position_id: { in: validateData.job_position_id },
           deleted_at: null,
         },
         department: {
-          name: validateData.department,
+          department_id: { in: validateData.department_id },
           deleted_at: null,
         },
         employment_status: {
-          name: validateData.employment_status,
+          employment_status_id: { in: validateData.employment_status_id },
           deleted_at: null,
         },
         deleted_at: null,
@@ -212,7 +212,6 @@ export class DocumentService {
         const passwordDefault = await password_generator(
           user[1] as string,
           userBirthDate
-          
         );
 
         const hashedPassword = await hashPassword(passwordDefault);
@@ -283,7 +282,7 @@ export class DocumentService {
     });
     const listDepartment = await prisma.department.findMany({
       where: {
-        deleted_at: null
+        deleted_at: null,
       },
       select: {
         name: true,
@@ -293,18 +292,18 @@ export class DocumentService {
     const exampleRow = worksheet.addRow({
       full_name: "Nama Lengkap",
       phone_number: "'081234(pakai tanda petik satu didepan)",
-      birth_date: "[dd/mm/yyyy]",
+      birth_date: "[mm/dd/yyyy]",
       company: "Nama perusahaan sesuaikan list dikanan",
       job_position: "Nama posisi kerja sesuaikan list dikanan",
       employment_status: "Status kerja sesuaikan list dikanan",
       department: "Nama departemen sesuaikan list dikanan",
     });
-    
+
     exampleRow.eachCell((cell) => {
       cell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'D3D3D3' }
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "D3D3D3" },
       };
     });
 
