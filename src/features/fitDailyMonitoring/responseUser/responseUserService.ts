@@ -7,6 +7,21 @@ import {
   GetResponseUserByIdRequest,
 } from "./responseUserModel";
 import { sendMessageFdmUnfit } from "../../../utils";
+const recomendationFit = `
+•	Anda dinyatakan Sehat dan diperbolehkan Masuk Kerja
+•	Tetap Jaga Kesehatan Fisik, Pikiran dan Perasaan Anda Serta Utamakan Tidur yang Cukup
+•	Jika Mengalami Tanda Gejala Sakit atau Kelelahan (Fatigue) Segera Hubungi Departemen Occupational Health atau Atasan Anda
+`
+const recomendationFitFollowUp = `
+•	Anda dinyatakan Kurang Sehat dan diperbolehkan Masuk Kerja Dengan Syarat Lakukan Power Nap Atau Kopi Stimulan Terlebih Dahulu
+•	Setelah Sampai di Site Segera Hubungi Occupational Health Dept. Untuk Tes Fit dengan Alat Ukur Fatigue 
+•	Tetap Jaga Kesehatan Fisik, Pikiran dan Perasaan Anda Serta Utamakan Tidur yang Cukup
+`
+const recomendationUnfit = `
+•	Anda dinyatakan Tidak Sehat dan Tidak diperbolehkan Masuk Kerja 
+•	Segera Hubungi Occupational Health Dept. atau Atasan Anda Untuk Follow Up Berikutnya 
+•	Tetap Jaga Kesehatan Fisik, Pikiran Dan Perasaan Anda Serta Utamakan Tidur yang Cukup
+`
 
 export class ResponseUserService {
   static async createResponseUser(data: CreateResponseUserRequest) {
@@ -46,18 +61,15 @@ export class ResponseUserService {
     });
 
     let result: "FIT" | "FIT_FOLLOW_UP" | "UNFIT" = "FIT";
-    let recomendation =
-      "Tetap semangat! Jaga kesehatan dan terus bekerja dengan baik.";
+    let recomendation = recomendationFit;
     const valueSet = new Set(values.map((v) => v.value));
 
     if (valueSet.has(3)) {
       result = "UNFIT";
-      recomendation =
-        "Anda tidak fit untuk bekerja. Silahkan istirahat dan periksakan diri ke dokter.";
+      recomendation = recomendationUnfit;
     } else if (valueSet.has(2)) {
       result = "FIT_FOLLOW_UP";
-      recomendation =
-        "Anda fit untuk bekerja, namun perlu dilakukan follow up untuk memastikan kondisi kesehatan Anda. Jaga kondisi tubuh Anda. Jika merasa lelah, jangan ragu untuk istirahat sejenak, minum kopi atau lakukan power nap.";
+      recomendation = recomendationFitFollowUp;
     }
 
     await prisma.$transaction(async (prisma) => {
