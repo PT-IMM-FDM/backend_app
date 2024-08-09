@@ -1,10 +1,10 @@
 import { Result } from '@prisma/client';
 
 export type ExportFileListUsersRequest = {
-  job_position?: string;
-  employment_status?: string;
-  department?: string;
-  company?: string;
+  job_position_id?: number[];
+  employment_status_id?: number[];
+  department_id?: number[];
+  company?: string[];
   date_from?: Date;
   date_to?: Date;
 };

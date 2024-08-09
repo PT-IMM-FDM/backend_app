@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { DocumentService } from "./documentService";
 import { ErrorResponse } from "../../models";
+import { parseArrayParam } from "../../utils";
 
 export class DocumentController {
   static async exportFileListUsers(
@@ -9,12 +10,18 @@ export class DocumentController {
     next: NextFunction
   ) {
     try {
-      const { job_position, employment_status, department, company } = req.body;
+      /* 
+      jpid = job_position_id
+      esid = employment_status_id
+      did = department_id
+      cid = company_id
+      */
+      const { jpid, esid, did, company } = req.query;
       const file = await DocumentService.exportFileListUsers({
-        job_position,
-        employment_status,
-        department,
-        company,
+        job_position_id: parseArrayParam(jpid),
+        employment_status_id: parseArrayParam(esid),
+        department_id: parseArrayParam(did),
+        company: company as string[],
       });
       res.status(200).json({
         success: true,
