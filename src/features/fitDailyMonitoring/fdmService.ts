@@ -422,7 +422,7 @@ export class FdmService {
         file_type: data.file.mimetype,
         file_url: pathToFileUrl(
           data.file.path,
-          process.env.SERVER_URL || "localhost:3030"
+          process.env.API_URL || "localhost:3030"
         ),
       },
     });
