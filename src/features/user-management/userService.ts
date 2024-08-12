@@ -200,36 +200,39 @@ export class UserService {
   ): Promise<UpdateUserResponse> {
     const validateData = Validation.validate(UserValidation.UPDATE_USER, data);
 
-    const findPhone = await prisma.user.findFirst({
-      where: {
-        phone_number: validateData.phone_number,
-        deleted_at: null,
-      },
-    });
+    if (validateData.phone_number !== undefined) {
+      const findPhone = await prisma.user.findFirst({
+        where: {
+          phone_number: validateData.phone_number,
+          deleted_at: null,
+        },
+      });
 
-    if (findPhone && findPhone.user_id !== validateData.user_id) {
-      throw new ErrorResponse(
-        "Phone number already exists",
-        400,
-        ["Phone number already exists"],
-        "PHONE_NUMBER_EXISTS"
-      );
+      if (findPhone && findPhone.user_id !== validateData.user_id) {
+        throw new ErrorResponse(
+          "Phone number already exists",
+          400,
+          ["Phone number already exists"],
+          "PHONE_NUMBER_EXISTS"
+        );
+      }
     }
+    if (validateData.email?.trim() !== "") {
+      const findEmail = await prisma.user.findFirst({
+        where: {
+          email: validateData.email,
+          deleted_at: null,
+        },
+      });
 
-    const findEmail = await prisma.user.findFirst({
-      where: {
-        email: validateData.email,
-        deleted_at: null,
-      },
-    });
-
-    if (findEmail && findEmail.user_id !== validateData.user_id) {
-      throw new ErrorResponse(
-        "Email already exists",
-        400,
-        ["Email already exists"],
-        "EMAIL_EXISTS"
-      );
+      if (findEmail && findEmail.user_id !== validateData.user_id) {
+        throw new ErrorResponse(
+          "Email already exists",
+          400,
+          ["Email already exists"],
+          "EMAIL_EXISTS"
+        );
+      }
     }
 
     const updateUser = await prisma.user.update({
