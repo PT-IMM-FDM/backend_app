@@ -27,7 +27,6 @@ export class DocumentService {
       DocumentValidation.GET_DOCUMENT_LIST_USER,
       data
     );
-
     const users = await prisma.user.findMany({
       where: {
         created_at: {
