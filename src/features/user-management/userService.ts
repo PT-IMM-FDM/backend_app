@@ -135,7 +135,6 @@ export class UserService {
             name: adminRole.department.name,
           },
           company: {
-            name: adminRole.company.name,
             deleted_at: null,
           },
           deleted_at: null,
