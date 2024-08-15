@@ -129,9 +129,6 @@ export const companyDefault = [
     name: "PT. Armindo Prima"
   },
   {
-    name: "PKL"
-  },
-  {
     name: "PT. CMP (Comindo Mitra Perkasa)"
   },
   {

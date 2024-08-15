@@ -40,5 +40,8 @@ export const jobPositionDefault = [
   },
   {
     name: "Vice President",
+  },
+  {
+    name: "Functional Head"
   }
 ];
