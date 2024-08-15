@@ -19,6 +19,7 @@ model User {
   employment_status_id     Int
   department_id            Int
   role_id                  Int
+  getNotification          Boolean                  @default(false)
   is_active                Boolean                  @default(true)
   job_position             JobPosition              @relation(fields: [job_position_id], references: [job_position_id])
   employment_status        EmploymentStatus         @relation(fields: [employment_status_id], references: [employment_status_id])

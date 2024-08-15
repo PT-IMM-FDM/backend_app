@@ -9,5 +9,6 @@ export const adminDefault = [
     employment_status_id: 1,
     department_id: 14,
     role_id: 1,
+    getNotification: true,
   },
 ];
