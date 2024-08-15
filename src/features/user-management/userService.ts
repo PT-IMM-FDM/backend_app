@@ -180,7 +180,6 @@ export class UserService {
         user_id: true,
       },
     });
-    console.log(adminDefault[0].user_id);
     users = await prisma.user.findMany({
       where: {
         company: {
