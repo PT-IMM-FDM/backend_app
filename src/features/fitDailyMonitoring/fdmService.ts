@@ -571,7 +571,6 @@ export class FdmService {
       })
     );
 
-    console.log(formattedResults);
     return formattedResults;
   }
 }
