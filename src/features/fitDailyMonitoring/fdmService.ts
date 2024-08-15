@@ -288,6 +288,14 @@ export class FdmService {
       FDMValidation.WHO_FILLED_TODAY,
       data
     );
+    const adminDefault = await prisma.user.findFirst({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
 
     const admin = await prisma.user.findUnique({
       where: {
@@ -345,6 +353,7 @@ export class FdmService {
       where: {
         user_id: {
           notIn: userIdsFilledToday,
+          not: adminDefault?.user_id,
         },
         job_position_id: { in: jobPositionIds },
         department_id: { in: departmentIds },
