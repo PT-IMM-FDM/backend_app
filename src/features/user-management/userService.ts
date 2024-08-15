@@ -173,7 +173,7 @@ export class UserService {
 
     adminDefault = await prisma.user.findMany({
       where: {
-        full_name: "Admin",
+        phone_number: "00000",
       },
       select: {
         user_id: true,
