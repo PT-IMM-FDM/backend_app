@@ -57,6 +57,7 @@ export type UpdateUserRequest = {
   department_id?: number;
   role_id?: number;
   is_active?: boolean;
+  get_notification?: boolean;
 };
 
 export type UpdateUserResponse = GetUserResponse;

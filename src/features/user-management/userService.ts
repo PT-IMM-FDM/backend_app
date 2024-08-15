@@ -51,6 +51,7 @@ let formatUserResponseData = {
     },
   },
   is_active: true,
+  getNotification: true,
 };
 
 export class UserService {
@@ -264,6 +265,7 @@ export class UserService {
         birth_date: validateData.birth_date,
         role_id: validateData.role_id,
         is_active: validateData.is_active,
+        get_notification: validateData.get_notification,
       },
       select: formatUserResponseData,
     });

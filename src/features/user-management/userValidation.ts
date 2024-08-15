@@ -38,6 +38,7 @@ export class UserValidation {
     email: z.string().optional(),
     birth_date: z.date().optional(),
     is_active: z.boolean().optional(),
+    get_notification: z.boolean().optional(),
   });
   
   static readonly UPDATE_PASSWORD: ZodType = z.object({

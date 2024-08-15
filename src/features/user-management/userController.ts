@@ -85,6 +85,7 @@ export class UserController {
         department_id,
         role_id,
         is_active,
+        get_notification,
       } = req.body;
       const updateUser = await UserService.updateUser({
         user_id,
@@ -97,6 +98,7 @@ export class UserController {
         department_id,
         role_id,
         is_active,
+        get_notification,
       });
 
       return res.status(200).json({
