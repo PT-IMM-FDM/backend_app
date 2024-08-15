@@ -141,19 +141,7 @@ export class ResponseUserService {
 
         const phoneNumberOfOH = await prisma.user.findMany({
           where: {
-            role: {
-              OR: [
-                {
-                  name: "Admin",
-                },
-                {
-                  name: "Full Viewer",
-                },
-                {
-                  name: "Viewer",
-                },
-              ],
-            },
+            get_notification: true,
             department: {
               name: "Occupational Health",
             },
@@ -165,9 +153,7 @@ export class ResponseUserService {
 
         const phoneNumberOfDepartmentHead = await prisma.user.findMany({
           where: {
-            job_position: {
-              name: "Department Head",
-            },
+            get_notification: true,
             department: {
               name: user.department.name,
             },
