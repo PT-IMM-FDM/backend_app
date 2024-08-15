@@ -180,7 +180,7 @@ export class UserService {
         user_id: true,
       },
     });
-
+    console.log(adminDefault[0].user_id);
     users = await prisma.user.findMany({
       where: {
         company: {
@@ -198,11 +198,10 @@ export class UserService {
           ? {
               contains: data.name,
               mode: "insensitive",
-              notIn: [adminDefault[0].user_id],
             }
           : undefined,
         is_active: data.is_active,
-        user_id: data.user_id,
+        user_id: { notIn: [adminDefault[0].user_id], contains: data.user_id },
         deleted_at: null,
       },
       select: formatUserResponseData,
