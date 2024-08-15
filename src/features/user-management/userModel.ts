@@ -2,7 +2,7 @@ import { User } from "@prisma/client";
 
 export type CreateUserRequest = Omit<
   User,
-  "user_id" | "password" | "created_at" | "deleted_at" | "email" | "is_active"
+  "user_id" | "password" | "created_at" | "deleted_at" | "is_active"
 >;
 
 export type CreateUserResponse = GetUserResponse;

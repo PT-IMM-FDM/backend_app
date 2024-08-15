@@ -89,6 +89,7 @@ export class UserService {
         employment_status_id: validateData.employment_status_id,
         department_id: validateData.department_id,
         full_name: validateData.full_name,
+        email: validateData.email,
         phone_number: validateData.phone_number,
         birth_date: validateData.birth_date,
         password: await hashPassword(generate_password),
@@ -101,6 +102,7 @@ export class UserService {
 
   static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
     let users;
+    let adminDefault;
     const adminRole = await prisma.user.findFirst({
       where: {
         user_id: data.adminUserId,
@@ -169,6 +171,15 @@ export class UserService {
       },
     });
 
+    adminDefault = await prisma.user.findMany({
+      where: {
+        full_name: "Admin",
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
     users = await prisma.user.findMany({
       where: {
         company: {
@@ -183,7 +194,11 @@ export class UserService {
         },
         department_id: { in: departmentId.map((item) => item.department_id) },
         full_name: data.name
-          ? { contains: data.name, mode: "insensitive" }
+          ? {
+              contains: data.name,
+              mode: "insensitive",
+              notIn: [adminDefault[0].user_id],
+            }
           : undefined,
         is_active: data.is_active,
         user_id: data.user_id,
@@ -216,7 +231,7 @@ export class UserService {
         );
       }
     }
-    if (validateData.email?.trim() !== "") {
+    if (validateData.email?.trim() !== "" && validateData.email !== undefined) {
       const findEmail = await prisma.user.findFirst({
         where: {
           email: validateData.email,

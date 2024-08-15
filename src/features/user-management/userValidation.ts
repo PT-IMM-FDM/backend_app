@@ -9,6 +9,7 @@ export class UserValidation {
     role_id: z.number(),
     full_name: z.string(),
     phone_number: z.string(),
+    email: z.string().optional(),
     birth_date: z.date(),
   });
 

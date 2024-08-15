@@ -13,6 +13,7 @@ export class UserController {
         employment_status_id,
         department_id,
         role_id,
+        email,
       } = req.body;
       const createUser = await UserService.createUser({
         full_name,
@@ -23,6 +24,7 @@ export class UserController {
         employment_status_id,
         department_id,
         role_id,
+        email
       });
       return res.status(200).json({
         success: true,
