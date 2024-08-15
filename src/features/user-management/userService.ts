@@ -20,6 +20,8 @@ let formatUserResponseData = {
   phone_number: true,
   birth_date: true,
   email: true,
+  is_active: true,
+  get_notification: true,
   job_position: {
     select: {
       job_position_id: true,
@@ -50,8 +52,6 @@ let formatUserResponseData = {
       name: true,
     },
   },
-  is_active: true,
-  getNotification: true,
 };
 
 export class UserService {

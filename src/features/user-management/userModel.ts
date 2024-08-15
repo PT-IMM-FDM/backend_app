@@ -23,6 +23,8 @@ export type GetUserResponse = {
   full_name: string;
   phone_number: string;
   birth_date: Date;
+  is_active: boolean;
+  get_notification: boolean;
   company: {
     company_id: number;
     name: string;
