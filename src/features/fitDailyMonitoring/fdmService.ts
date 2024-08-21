@@ -26,7 +26,7 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
   FIT_FOLLOW_UP: "FIT_FOLLOW_UP",
   UNFIT: "UNFIT",
 };
-
+let adminDefault: { user_id: string } | null;
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
     const resultValue = data.result
@@ -56,7 +56,7 @@ export class FdmService {
       },
       result: resultValue,
       user: {
-        user_id: validateData.user_id,
+        user_id: { notIn: [adminDefault?.user_id ?? ""] },
         job_position_id: { in: validateData.job_position_id },
         department_id: isViewer
           ? adminRole.department_id
@@ -147,6 +147,15 @@ export class FdmService {
   static async countResult(data: GetFDMCountResultRequest) {
     const validateData = Validation.validate(FDMValidation.COUNT_RESULT, data);
 
+    adminDefault = await prisma.user.findFirst({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
     const admin = await prisma.user.findUnique({
       where: {
         user_id: validateData.admin_user_id,
@@ -181,7 +190,7 @@ export class FdmService {
           lte: validateData.endDate,
         },
         user: {
-          user_id: validateData.user_id,
+          user_id: { notIn: [adminDefault?.user_id ?? ""] },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
@@ -199,7 +208,7 @@ export class FdmService {
           lte: validateData.endDate,
         },
         user: {
-          user_id: validateData.user_id,
+          user_id: { notIn: [adminDefault?.user_id ?? ""] },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
@@ -217,7 +226,7 @@ export class FdmService {
           lte: validateData.endDate,
         },
         user: {
-          user_id: validateData.user_id,
+          user_id: { notIn: [adminDefault?.user_id ?? ""] },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
@@ -272,6 +281,7 @@ export class FdmService {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
         user: {
+          user_id: { notIn: [adminDefault?.user_id ?? ""] },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
@@ -508,6 +518,7 @@ export class FdmService {
           lte: endDate,
         },
         user: {
+          user_id: { notIn: [adminDefault?.user_id ?? ""] },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
