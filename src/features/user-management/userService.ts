@@ -104,6 +104,14 @@ export class UserService {
   static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
     let users;
     let adminDefault;
+    adminDefault = await prisma.user.findMany({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
     const adminRole = await prisma.user.findFirst({
       where: {
         user_id: data.adminUserId,
@@ -141,6 +149,7 @@ export class UserService {
             deleted_at: null,
           },
           deleted_at: null,
+          user_id: { notIn: [adminDefault[0].user_id] }
         },
         select: formatUserResponseData,
       });
@@ -172,14 +181,6 @@ export class UserService {
       },
     });
 
-    adminDefault = await prisma.user.findMany({
-      where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
-    });
     users = await prisma.user.findMany({
       where: {
         company: {
