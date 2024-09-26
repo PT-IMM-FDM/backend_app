@@ -244,7 +244,8 @@ export class DocumentService {
   static async templateFileListUsers() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Users");
-
+  
+    // Define columns
     worksheet.columns = [
       { header: "Full Name", key: "full_name", width: 20 },
       { header: "Phone Number", key: "phone_number", width: 20 },
@@ -254,50 +255,38 @@ export class DocumentService {
       { header: "Employment Status", key: "employment_status", width: 30 },
       { header: "Department", key: "department", width: 30 },
     ];
-
+  
+    // Fetch lists from the database
     const listCompany = await prisma.company.findMany({
-      where: {
-        deleted_at: null,
-      },
-      select: {
-        name: true,
-      },
+      where: { deleted_at: null },
+      select: { name: true },
     });
     const listJobPosition = await prisma.jobPosition.findMany({
-      where: {
-        deleted_at: null,
-      },
-      select: {
-        name: true,
-      },
+      where: { deleted_at: null },
+      select: { name: true },
     });
     const listEmploymentStatus = await prisma.employmentStatus.findMany({
-      where: {
-        deleted_at: null,
-      },
-      select: {
-        name: true,
-      },
+      where: { deleted_at: null },
+      select: { name: true },
     });
     const listDepartment = await prisma.department.findMany({
-      where: {
-        deleted_at: null,
-      },
-      select: {
-        name: true,
-      },
+      where: { deleted_at: null },
+      select: { name: true },
     });
-
+  
+    // Example row
     const exampleRow = worksheet.addRow({
       full_name: "Nama Lengkap",
       phone_number: "'081234(pakai tanda petik satu didepan)",
       birth_date: "[mm/dd/yyyy]",
-      company: "Nama perusahaan sesuaikan list dikanan",
-      job_position: "Nama posisi kerja sesuaikan list dikanan",
-      employment_status: "Status kerja sesuaikan list dikanan",
-      department: "Nama departemen sesuaikan list dikanan",
+      company: "Nama perusahaan diisi dengan isian dropdown",
+      job_position: "Nama posisi kerja diisi dengan isian dropdown",
+      employment_status: "Status kerja diisi dengan isian dropdown",
+      department: "Nama departemen diisi dengan isian dropdown",
     });
 
+    exampleRow.getCell(1).alignment = { wrapText: true, vertical: 'top' };
+  
     exampleRow.eachCell((cell) => {
       cell.fill = {
         type: "pattern",
@@ -305,45 +294,56 @@ export class DocumentService {
         fgColor: { argb: "D3D3D3" },
       };
     });
-
+  
     worksheet.addRow([]);
-
-    worksheet.getColumn(10).values = [
-      "List Company",
-      ...listCompany.map((company) => company.name),
-    ];
+  
+    // Add reference lists in right-hand columns
+    worksheet.getColumn(10).values = ["List Company", ...listCompany.map((company) => company.name)];
     worksheet.getColumn(10).width = 35;
-
-    worksheet.getColumn(11).values = [
-      "List Job Position",
-      ...listJobPosition.map((job) => job.name),
-    ];
+  
+    worksheet.getColumn(11).values = ["List Job Position", ...listJobPosition.map((job) => job.name)];
     worksheet.getColumn(11).width = 30;
-
-    worksheet.getColumn(12).values = [
-      "List Employment Status",
-      ...listEmploymentStatus.map((status) => status.name),
-    ];
+  
+    worksheet.getColumn(12).values = ["List Employment Status", ...listEmploymentStatus.map((status) => status.name)];
     worksheet.getColumn(12).width = 30;
-
-    worksheet.getColumn(13).values = [
-      "List Department",
-      ...listDepartment.map((department) => department.name),
-    ];
+  
+    worksheet.getColumn(13).values = ["List Department", ...listDepartment.map((department) => department.name)];
     worksheet.getColumn(13).width = 30;
-
-    const filePath1 = path.join(
-      "./public",
-      "Template Import Data Karyawan.xlsx"
-    );
-    const filePath = pathToFileUrl(
-      "public/Template Import Data Karyawan.xlsx",
-      process.env.API_URL || "localhost:3030"
-    );
+  
+    // Set up dropdowns using dataValidations
+    const startRow = 3; // Row where the dropdown should start
+    const endRow = 500; // Define how many rows you want to include for the dropdown
+  
+    for (let row = startRow; row <= endRow; row++) {
+      worksheet.getCell(`D${row}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [`$J$2:$J${listCompany.length + 1}`], // Reference to List Company
+      };
+      worksheet.getCell(`E${row}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [`$K$2:$K${listJobPosition.length + 1}`], // Reference to List Job Position
+      };
+      worksheet.getCell(`F${row}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [`$L$2:$L${listEmploymentStatus.length + 1}`], // Reference to List Employment Status
+      };
+      worksheet.getCell(`G${row}`).dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [`$M$2:$M${listDepartment.length + 1}`], // Reference to List Department
+      };
+    }
+  
+    const filePath1 = path.join("./public", "Template Import Data Karyawan.xlsx");
+    const filePath = pathToFileUrl("public/Template Import Data Karyawan.xlsx", process.env.API_URL || "localhost:3030");
     await workbook.xlsx.writeFile(filePath1);
-
+  
     return filePath;
   }
+  
 
   static async exportDataFdm(data: ExportDataFdmRequest) {
     let resultValue; // FIT, FIT_FOLLOW_UP, UNFIT

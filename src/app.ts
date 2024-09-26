@@ -14,7 +14,7 @@ import { fdmRoute } from "./features/fitDailyMonitoring";
 
 dotenv.config();
 const app: Express = express();
-const whatsapp = clientWhatsapp.initialize()
+// const whatsapp = clientWhatsapp.initialize()
 
 cron.schedule("0 0 * * *", async () => {
   // await UserFormMiddleware.dailyCheckExpiredPremiumPackage()
