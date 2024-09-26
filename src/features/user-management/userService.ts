@@ -58,7 +58,7 @@ export class UserService {
   static async createUser(
     data: CreateUserRequest
   ): Promise<CreateUserResponse> {
-    data.birth_date = new Date(data.birth_date);
+    data.birth_date = new Date(data.birth_date + "GMT-0000");
 
     const validateData = Validation.validate(UserValidation.CREATE_USER, data);
 
@@ -211,8 +211,24 @@ export class UserService {
   static async updateUser(
     data: UpdateUserRequest
   ): Promise<UpdateUserResponse> {
+    if (data.birth_date) {
+      data.birth_date = new Date(data.birth_date + "GMT-0000");
+    }
     const validateData = Validation.validate(UserValidation.UPDATE_USER, data);
-
+    const findUser = await prisma.user.findFirst({
+      where: {
+        user_id: validateData.user_id,
+        deleted_at: null,
+      },
+    });
+    if (!findUser) {
+      throw new ErrorResponse(
+        "User not found",
+        404,
+        ["user_id"],
+        "USER_NOT_FOUND"
+      );
+    }
     if (validateData.phone_number !== undefined) {
       const findPhone = await prisma.user.findFirst({
         where: {

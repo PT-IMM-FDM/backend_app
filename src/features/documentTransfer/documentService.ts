@@ -167,7 +167,7 @@ export class DocumentService {
         break;
       }
       await prisma.$transaction(async (prisma) => {
-        const userBirthDate = new Date(user[3]);
+        const userBirthDate = new Date(user[3] + 'GMT-0000');
         const company = await prisma.company.findFirst({
           where: {
             name: user[4],

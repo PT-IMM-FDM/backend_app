@@ -77,6 +77,7 @@ export class UserController {
       const {
         user_id,
         full_name,
+        birth_date,
         phone_number,
         email,
         company_id,
@@ -90,6 +91,7 @@ export class UserController {
       const updateUser = await UserService.updateUser({
         user_id,
         full_name,
+        birth_date,
         phone_number,
         email,
         company_id,
@@ -97,8 +99,8 @@ export class UserController {
         employment_status_id,
         department_id,
         role_id,
-        is_active,
-        get_notification,
+        is_active: is_active === "true" ? true : false,
+        get_notification: get_notification === "true" ? true : false,
       });
 
       return res.status(200).json({
@@ -118,12 +120,14 @@ export class UserController {
         full_name,
         phone_number,
         email,
+        birth_date
       } = req.body;
       const updateUser = await UserService.updateUser({
         user_id,
         full_name,
         phone_number,
         email,
+        birth_date
       });
 
       return res.status(200).json({
