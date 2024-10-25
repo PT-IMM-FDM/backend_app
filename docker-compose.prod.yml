@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  ts-node-docker:
+    build:
+      target: production
+    env_file:
+      - .env.prod
+    ports:
+      - '3030:3030'
+    volumes:
+      - ./.docker-data:/app # menyimpan init.lock di luar container
+    command: sh -c "[ ! -f /app/.docker-data/init.lock ] && npx prisma db push && npx prisma db seed && touch /app/.docker-data/init.lock || node build/index.js"
