@@ -11,8 +11,7 @@
     "test": "jest"
   },
   "prisma": {
-    "seed": "ts-node ./prisma/seed/index.ts",
-    "schema": "./prisma/schema.prisma"
+    "seed": "ts-node ./prisma/seed/index.ts"
   },
   "keywords": [],
   "author": "",
