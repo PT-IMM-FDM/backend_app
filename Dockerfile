@@ -12,4 +12,4 @@ FROM base AS production
 
 ENV NODE_PATH=./dist
 
-RUN npm run build
+RUN npm run build && npm run seed
