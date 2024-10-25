@@ -3,6 +3,5 @@ public
 .env
 pnpm-lock.yaml
 yarn.lock
-package-lock.json
 *.log
 .wwebjs_auth
