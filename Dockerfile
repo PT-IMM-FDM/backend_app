@@ -1,4 +1,4 @@
-FROM node:18 as base
+FROM node:18 AS base
 
 WORKDIR /
 
@@ -8,7 +8,7 @@ RUN npm i
 
 COPY . .
 
-FROM base as production
+FROM base AS production
 
 ENV NODE_PATH=./dist
 
