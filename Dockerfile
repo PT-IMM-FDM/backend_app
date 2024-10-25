@@ -14,4 +14,4 @@ ENV NODE_PATH=./dist
 
 EXPOSE 3000
 
-RUN npm run build && npm run seed
+RUN npm run build && npm run seed && npm run start
