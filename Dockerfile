@@ -6,8 +6,6 @@ COPY package*.json ./
 
 RUN npm i
 
-RUN npx prisma generate
-
 COPY . .
 
 FROM base as production
