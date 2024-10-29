@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.adminDefault = void 0;
+exports.adminDefault = [
+    {
+        full_name: "Admin",
+        phone_number: "00000",
+        password: "@dmin123",
+        birth_date: "1997/03/03",
+        company_id: 34,
+        job_position_id: 1,
+        employment_status_id: 1,
+        department_id: 14,
+        role_id: 1,
+        get_notification: true,
+    },
+];
