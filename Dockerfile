@@ -14,11 +14,12 @@ RUN npm install -D typescript @types/node ts-node
 # Copy the rest of the application
 COPY . .
 
+# Run Prisma migration and seed commands (optional)
+RUN npx prisma generate
+
 # Build TypeScript
 RUN npm run build
 
-# Run Prisma migration and seed commands (optional)
-RUN npx prisma generate
 
 # Run Prisma migrations and seed on the final image entry
 CMD ["sh", "-c", "\
