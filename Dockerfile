@@ -22,5 +22,5 @@ RUN npx prisma generate
 CMD ["sh", "-c", "\
     npx prisma db push --force-reset && \
     npx prisma db seed && \
-    node build/index.js \
+    node app/build/index.js \
 "]
