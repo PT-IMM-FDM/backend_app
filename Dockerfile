@@ -19,4 +19,9 @@ RUN npm run build
 RUN npx prisma generate
 
 # Run Prisma migrations and seed on the final image entry
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node build/index.js"]
+CMD ["sh", "-c", "\
+    npx prisma migrate resolve --applied \"20240815102935_added_the_require_table\" && \
+    npx prisma migrate deploy && \
+    npx prisma db seed && \
+    node build/index.js \
+"]
