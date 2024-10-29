@@ -1,15 +1,25 @@
+# Use Node as base
 FROM node:18 AS base
 
-WORKDIR /
+# Set the working directory
+WORKDIR /app
 
+# Copy package.json and install dependencies
 COPY package*.json ./
 
-RUN npm i
+RUN npm install
 
+# Copy the rest of the application
 COPY . .
 
+# Build TypeScript
+RUN npm run build
+
+# Run Prisma migration and seed commands (optional)
+RUN npx prisma generate
+
+# Production stage
 FROM base AS production
 
-ENV NODE_PATH=./dist
-
-RUN npm run build && npm run seed 
+# Run Prisma migrations and seed on the final image entry
+CMD ["sh", "-c", "npx prisma db migrate deploy && npx prisma db seed && node build/index.js"]
