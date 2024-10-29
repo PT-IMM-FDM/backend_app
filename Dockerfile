@@ -2,7 +2,7 @@
 FROM node:18 AS base
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /
 
 # Copy package.json and install dependencies
 COPY package*.json ./
@@ -22,5 +22,5 @@ RUN npx prisma generate
 CMD ["sh", "-c", "\
     npx prisma db push --force-reset && \
     npx prisma db seed && \
-    node app/build/index.js \
+    node build/index.js \
 "]
