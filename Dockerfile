@@ -9,8 +9,6 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN npm install -D typescript @types/node ts-node
-
 # Copy the rest of the application
 COPY . .
 
@@ -20,9 +18,9 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
-
 # Run Prisma migrations and seed on the final image entry
 CMD ["sh", "-c", "\
+    npm install -D typescript @types/node ts-node \
     npx prisma db push --force-reset && \
     npx prisma db seed && \
     node build/index.js \
