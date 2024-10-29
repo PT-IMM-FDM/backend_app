@@ -12,6 +12,7 @@
   },
   "prisma": {
     "seed": "ts-node ./prisma/seed/index.ts"
+
   },
   "keywords": [],
   "author": "",

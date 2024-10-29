@@ -18,10 +18,10 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
+RUN npm run seed
+
 # Run Prisma migrations and seed on the final image entry
 CMD ["sh", "-c", "\
-    npm install -D typescript @types/node ts-node \
     npx prisma db push --force-reset && \
-    npx prisma db seed && \
     node build/index.js \
 "]
