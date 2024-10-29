@@ -18,8 +18,5 @@ RUN npm run build
 # Run Prisma migration and seed commands (optional)
 RUN npx prisma generate
 
-# Production stage
-FROM base AS production
-
 # Run Prisma migrations and seed on the final image entry
 CMD ["sh", "-c", "npx prisma db migrate deploy && npx prisma db seed && node build/index.js"]
