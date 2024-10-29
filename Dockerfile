@@ -9,6 +9,8 @@ COPY package*.json ./
 
 RUN npm install
 
+RUN npm install -D typescript @types/node ts-node
+
 # Copy the rest of the application
 COPY . .
 
