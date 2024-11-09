@@ -21,6 +21,13 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
   FIT_FOLLOW_UP: "FIT_FOLLOW_UP",
   UNFIT: "UNFIT",
 };
+
+const publicDir = path.resolve(__dirname, "../../../public");
+
+// Check if directory exists and create it if not
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true });
+}
 export class DocumentService {
   static async exportFileListUsers(data: ExportFileListUsersRequest) {
     const validateData = Validation.validate(
@@ -118,9 +125,9 @@ export class DocumentService {
       });
     });
 
-    const filePath1 = path.join("./public", "Kumpulan Data Karyawan.xlsx");
+    const filePath1 = path.join(publicDir, "Kumpulan Data Karyawan.xlsx");
     const filePath = pathToFileUrl(
-      "/public/Kumpulan data Karyawan.xlsx",
+      filePath1,
       process.env.API_URL || "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);
@@ -337,8 +344,9 @@ export class DocumentService {
       };
     }
   
-    const filePath1 = path.join("./public", "Template Import Data Karyawan.xlsx");
-    const filePath = pathToFileUrl("public/Template Import Data Karyawan.xlsx", process.env.API_URL || "localhost:3030");
+  const filePath1 = path.join(publicDir, "Template Import Data Karyawan.xlsx");
+  const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
+
     await workbook.xlsx.writeFile(filePath1);
   
     return filePath;
@@ -493,9 +501,9 @@ export class DocumentService {
       worksheet.addRow(row);
     });
 
-    const filePath1 = path.join("./public", "Export Data FDM Karyawan.xlsx");
+    const filePath1 = path.join(publicDir, "Export Data FDM Karyawan.xlsx");
     const filePath = pathToFileUrl(
-      "public/Export Data FDM Karyawan.xlsx",
+      filePath1,
       process.env.API_URL || "localhost:3030"
     );
     await workbook.xlsx.writeFile(filePath1);
