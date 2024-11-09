@@ -24,12 +24,11 @@ export class DocumentController {
         department_id: parseArrayParam(did),
         company: company as string[],
       });
-      const filePath = path.resolve(__dirname, "../../../public", file);
-
-      res.download(filePath, file, (err) => {
-        if (err) {
-          next(err);
-        }
+      
+      res.status(200).json({
+        success: true,
+        data: file,
+        message: "Export file list users",
 });
 ;
     } catch (error) {
@@ -64,12 +63,7 @@ export class DocumentController {
   ) {
     try {
       const file = await DocumentService.templateFileListUsers();
-      // const filePath = path.resolve(__dirname, "../../../public", file);
-      // res.download(filePath, file, (err) => {
-      //   if (err) {
-      //     next(err);
-      //   }
-      // });
+
       res.status(200).json({
         success: true,
         data: file,
@@ -113,12 +107,11 @@ export class DocumentController {
         company_name,
         employment_status_name,
       });
-      const filePath = path.resolve(__dirname, "../../../public", file);
 
-      res.download(filePath, file, (err) => {
-        if (err) {
-          next(err);
-        }
+      res.status(200).json({
+        success: true,
+        data: file,
+        message: "Export data FDM",
       });
 
     } catch (error) {
