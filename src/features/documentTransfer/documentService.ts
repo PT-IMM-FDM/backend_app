@@ -340,10 +340,12 @@ export class DocumentService {
       };
     }
     const filename = "Template Import Data Karyawan.xlsx";
-    const filePath1 = path.join(publicDir, filename);
+    const filePath1 = path.join("./public", filename);
+    const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
+    console.log(filePath);
 
     await workbook.xlsx.writeFile(filePath1);
-    return filename;
+    return filePath;
   }
   
 
