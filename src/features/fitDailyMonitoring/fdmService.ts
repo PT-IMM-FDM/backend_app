@@ -29,6 +29,15 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
 let adminDefault: { user_id: string } | null;
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
+    let adminDefault = await prisma.user.findFirst({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
+    
     const resultValue = data.result
       ? resultEnumMapping[data.result as ResultKey]
       : undefined;
