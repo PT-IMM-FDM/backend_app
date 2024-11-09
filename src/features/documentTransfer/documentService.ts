@@ -30,6 +30,16 @@ if (!fs.existsSync(publicDir)) {
 }
 export class DocumentService {
   static async exportFileListUsers(data: ExportFileListUsersRequest) {
+    let adminDefault;
+    adminDefault = await prisma.user.findMany({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
     const validateData = Validation.validate(
       DocumentValidation.GET_DOCUMENT_LIST_USER,
       data
@@ -57,6 +67,7 @@ export class DocumentService {
           deleted_at: null,
         },
         deleted_at: null,
+        user_id: {notIn: adminDefault.map((admin) => admin.user_id)},
       },
       select: {
         full_name: true,
@@ -127,7 +138,7 @@ export class DocumentService {
     const file_name = "Kumpulan Data Karyawan.xlsx";
     const filePath1 = path.join("./public", file_name);
     const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
-    
+
     await workbook.xlsx.writeFile(filePath1);
 
     return file_name;
@@ -352,6 +363,15 @@ export class DocumentService {
 
   static async exportDataFdm(data: ExportDataFdmRequest) {
     let resultValue; // FIT, FIT_FOLLOW_UP, UNFIT
+    let adminDefault;
+    adminDefault = await prisma.user.findMany({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
     if (data.result) {
       resultValue = resultEnumMapping[data.result as ResultKey];
     }
@@ -371,6 +391,7 @@ export class DocumentService {
         user: {
           user_id: {
             in: validateData.user_id ? [...validateData.user_id] : undefined,
+            notIn: adminDefault.map((admin) => admin.user_id),
           },
           job_position: {
             name: { in: validateData.job_position_name },
