@@ -65,12 +65,18 @@ export class DocumentController {
     try {
       const file = await DocumentService.templateFileListUsers();
       const filePath = path.resolve(__dirname, "../../../public", file);
-      res.download(filePath, file, (err) => {
-        if (err) {
-          next(err);
-        }
+      // res.download(filePath, file, (err) => {
+      //   if (err) {
+      //     next(err);
+      //   }
+      // });
+      res.status(200).json({
+        success: true,
+        data: filePath,
+        message: "Template file list users",
       });
-      
+
+
     } catch (error) {
       next(error);
     }
