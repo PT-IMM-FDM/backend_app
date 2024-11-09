@@ -124,15 +124,11 @@ export class DocumentService {
         department: user.department.name,
       });
     });
-
-    const filePath1 = path.join("./public", "Kumpulan Data Karyawan.xlsx");
-    const filePath = pathToFileUrl(
-      filePath1,
-      process.env.API_URL || "localhost:3030"
-    );
+    const file_name = "Kumpulan Data Karyawan.xlsx";
+    const filePath1 = path.join(publicDir, file_name);
     await workbook.xlsx.writeFile(filePath1);
 
-    return filePath;
+    return file_name;
   }
 
   static async importFileListUsers(data: ImportFileListUsersRequest) {
@@ -344,10 +340,9 @@ export class DocumentService {
       };
     }
     const filename = "Template Import Data Karyawan.xlsx";
-    const filePath1 = path.join("./public", filename);
+    const filePath1 = path.join(publicDir, filename);
 
     await workbook.xlsx.writeFile(filePath1);
-  
     return filename;
   }
   
@@ -501,7 +496,7 @@ export class DocumentService {
     });
 
     const filename = "Export Data FDM Karyawan.xlsx";
-    const filePath1 = path.join("./public", filename);
+    const filePath1 = path.join(publicDir, filename);
 
     await workbook.xlsx.writeFile(filePath1);
 
