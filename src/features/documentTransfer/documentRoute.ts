@@ -19,8 +19,8 @@ documentRoute.post("/import-users", [
 ]);
 
 documentRoute.get("/template-users", [
-  JwtMiddleware.verifyToken, 
-  JwtMiddleware.adminOrViewer,
+  // JwtMiddleware.verifyToken, 
+  // JwtMiddleware.adminOrViewer,
   DocumentController.templateFileListUsers,
 ]);
 

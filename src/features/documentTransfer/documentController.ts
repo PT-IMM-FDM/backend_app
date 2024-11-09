@@ -4,6 +4,7 @@ import { ErrorResponse } from "../../models";
 import { parseArrayParam } from "../../utils";
 import path from "path";
 
+const filePath = path.resolve(__dirname, "../../../public");
 export class DocumentController {
   static async exportFileListUsers(
     req: Request,
@@ -24,7 +25,6 @@ export class DocumentController {
         department_id: parseArrayParam(did),
         company: company as string[],
       });
-      const filePath = path.resolve(__dirname, "../../../public", file);
 
       res.download(filePath, file, (err) => {
         if (err) {
@@ -64,8 +64,6 @@ export class DocumentController {
   ) {
     try {
       const file = await DocumentService.templateFileListUsers();
-      const filePath = path.resolve(__dirname, "../../../public", file);
-
       res.download(filePath, file, (err) => {
         if (err) {
           next(err);
@@ -108,7 +106,6 @@ export class DocumentController {
         company_name,
         employment_status_name,
       });
-      const filePath = path.resolve(__dirname, "../../../public", file);
 
       res.download(filePath, file, (err) => {
         if (err) {
