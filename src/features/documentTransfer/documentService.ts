@@ -343,13 +343,12 @@ export class DocumentService {
         formulae: [`$M$2:$M${listDepartment.length + 1}`], // Reference to List Department
       };
     }
-  
-  const filePath1 = path.join("./public", "Template Import Data Karyawan.xlsx");
-  const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
+    const filename = "Template Import Data Karyawan.xlsx";
+    const filePath1 = path.join("./public", filename);
 
     await workbook.xlsx.writeFile(filePath1);
   
-    return filePath;
+    return filename;
   }
   
 
@@ -501,13 +500,11 @@ export class DocumentService {
       worksheet.addRow(row);
     });
 
-    const filePath1 = path.join("./public", "Export Data FDM Karyawan.xlsx");
-    const filePath = pathToFileUrl(
-      filePath1,
-      process.env.API_URL || "localhost:3030"
-    );
+    const filename = "Export Data FDM Karyawan.xlsx";
+    const filePath1 = path.join("./public", filename);
+
     await workbook.xlsx.writeFile(filePath1);
 
-    return filePath;
+    return filename;
   }
 }

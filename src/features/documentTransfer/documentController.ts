@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { DocumentService } from "./documentService";
 import { ErrorResponse } from "../../models";
 import { parseArrayParam } from "../../utils";
+import path from "path";
 
 export class DocumentController {
   static async exportFileListUsers(
@@ -23,11 +24,14 @@ export class DocumentController {
         department_id: parseArrayParam(did),
         company: company as string[],
       });
-      res.status(200).json({
-        success: true,
-        data: file,
-        message: "Document list users",
-      });
+      const filePath = path.resolve(__dirname, "../../../public", file);
+
+      res.download(filePath, file, (err) => {
+        if (err) {
+          next(err);
+        }
+});
+;
     } catch (error) {
       next(error);
     }
@@ -60,11 +64,14 @@ export class DocumentController {
   ) {
     try {
       const file = await DocumentService.templateFileListUsers();
-      res.status(200).json({
-        success: true,
-        data: file,
-        message: "Template file list users",
+      const filePath = path.resolve(__dirname, "../../../public", file);
+
+      res.download(filePath, file, (err) => {
+        if (err) {
+          next(err);
+        }
       });
+      
     } catch (error) {
       next(error);
     }
@@ -101,11 +108,14 @@ export class DocumentController {
         company_name,
         employment_status_name,
       });
-      res.status(200).json({
-        success: true,
-        data: file,
-        message: "Export file FDM",
+      const filePath = path.resolve(__dirname, "../../../public", file);
+
+      res.download(filePath, file, (err) => {
+        if (err) {
+          next(err);
+        }
       });
+
     } catch (error) {
       next(error);
     }
