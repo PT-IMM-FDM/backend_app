@@ -60,7 +60,6 @@ export class DocumentController {
   ) {
     try {
       const file = await DocumentService.templateFileListUsers();
-      console.log(file);
       res.status(200).json({
         success: true,
         data: file,
