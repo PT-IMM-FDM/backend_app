@@ -125,7 +125,7 @@ export class DocumentService {
       });
     });
 
-    const filePath1 = path.join(publicDir, "Kumpulan Data Karyawan.xlsx");
+    const filePath1 = path.join("./public", "Kumpulan Data Karyawan.xlsx");
     const filePath = pathToFileUrl(
       filePath1,
       process.env.API_URL || "localhost:3030"
@@ -344,7 +344,7 @@ export class DocumentService {
       };
     }
   
-  const filePath1 = path.join(publicDir, "Template Import Data Karyawan.xlsx");
+  const filePath1 = path.join("./public", "Template Import Data Karyawan.xlsx");
   const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
 
     await workbook.xlsx.writeFile(filePath1);
@@ -501,7 +501,7 @@ export class DocumentService {
       worksheet.addRow(row);
     });
 
-    const filePath1 = path.join(publicDir, "Export Data FDM Karyawan.xlsx");
+    const filePath1 = path.join("./public", "Export Data FDM Karyawan.xlsx");
     const filePath = pathToFileUrl(
       filePath1,
       process.env.API_URL || "localhost:3030"
