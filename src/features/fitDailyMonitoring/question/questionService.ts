@@ -85,15 +85,23 @@ export class QuestionService {
   }
 
   static async isFilled(user_id: string){
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+    startOfDay.setHours(startOfDay.getHours() + 8);
+    endOfDay.setHours(endOfDay.getHours() + 8);
+    console.log(startOfDay, endOfDay);
     const isFilled = await prisma.attendanceHealthResult.findFirst({
       where: {
         user_id,
         created_at: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          gte: startOfDay,
+          lte: endOfDay,
         },
       },
     });
+    console.log(isFilled);
 
     if(isFilled){
       return isFilled;
