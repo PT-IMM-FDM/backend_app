@@ -209,6 +209,113 @@ export class UserService {
     return users;
   }
 
+  static async getTotalUsers(data: GetUserRequest): Promise<number> {
+    let users;
+    let adminDefault;
+    adminDefault = await prisma.user.findMany({
+      where: {
+        phone_number: "00000",
+      },
+      select: {
+        user_id: true,
+      },
+    });
+    const adminRole = await prisma.user.findFirst({
+      where: {
+        user_id: data.adminUserId,
+      },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+        department: {
+          select: {
+            name: true,
+          },
+        },
+        company: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (
+      adminRole &&
+      adminRole.role.name !== "Admin" &&
+      adminRole.role.name !== "Full Viewer"
+    ) {
+      users = await prisma.user.count({
+        where: {
+          department: {
+            name: adminRole.department.name,
+          },
+          company: {
+            deleted_at: null,
+          },
+          deleted_at: null,
+          user_id: { notIn: [adminDefault[0].user_id] }
+        },
+      });
+
+      return users;
+    }
+
+    const CompanyId = await prisma.company.findMany({
+      where: {
+        name: { in: data.company_name, mode: "insensitive" },
+      },
+    });
+
+    const jobPositionId = await prisma.jobPosition.findMany({
+      where: {
+        name: { in: data.job_position, mode: "insensitive" },
+      },
+    });
+
+    const employmentStatusId = await prisma.employmentStatus.findMany({
+      where: {
+        name: { in: data.employment_status, mode: "insensitive" },
+      },
+    });
+
+    const departmentId = await prisma.department.findMany({
+      where: {
+        name: { in: data.department, mode: "insensitive" },
+      },
+    });
+
+    users = await prisma.user.count({
+      where: {
+        company: {
+          company_id: { in: CompanyId.map((item) => item.company_id) },
+          deleted_at: null,
+        },
+        job_position_id: {
+          in: jobPositionId.map((item) => item.job_position_id),
+        },
+        employment_status_id: {
+          in: employmentStatusId.map((item) => item.employment_status_id),
+        },
+        department_id: { in: departmentId.map((item) => item.department_id
+        ) },
+        full_name: data.name
+          ? {
+              contains: data.name,
+              mode: "insensitive",
+            }
+          : undefined,
+        is_active: data.is_active,
+        user_id: { notIn: [adminDefault[0].user_id], contains: data.user_id },
+        deleted_at: null,
+      },
+    });
+    return users;
+  }
+
   static async updateUser(
     data: UpdateUserRequest
   ): Promise<UpdateUserResponse> {

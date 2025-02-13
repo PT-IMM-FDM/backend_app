@@ -24,7 +24,7 @@ export class UserController {
         employment_status_id,
         department_id,
         role_id,
-        email
+        email,
       });
       return res.status(200).json({
         success: true,
@@ -66,6 +66,42 @@ export class UserController {
         success: true,
         data: getUsers,
         message: "Users fetched successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getTotalUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const {
+        company_name,
+        job_position,
+        employment_status,
+        department,
+        name,
+        is_active,
+        user_id,
+      } = req.body;
+      let is_active_to_boolean;
+
+      if (is_active !== undefined) {
+        is_active_to_boolean = is_active === "true" ? true : false;
+      }
+      const getTotalUsers = await UserService.getTotalUsers({
+        adminUserId: res.locals.user.user_id,
+        company_name,
+        job_position,
+        employment_status,
+        department,
+        name,
+        is_active: is_active_to_boolean,
+        user_id,
+      });
+      return res.status(200).json({
+        success: true,
+        data: getTotalUsers,
+        message: "Total users fetched successfully",
       });
     } catch (error) {
       next(error);
@@ -116,18 +152,13 @@ export class UserController {
   static async updateMe(req: Request, res: Response, next: NextFunction) {
     try {
       const user_id = res.locals.user.user_id;
-      const {
-        full_name,
-        phone_number,
-        email,
-        birth_date
-      } = req.body;
+      const { full_name, phone_number, email, birth_date } = req.body;
       const updateUser = await UserService.updateUser({
         user_id,
         full_name,
         phone_number,
         email,
-        birth_date
+        birth_date,
       });
 
       return res.status(200).json({
@@ -172,7 +203,7 @@ export class UserController {
       const user_id = req.params.user_id;
       await UserService.resetPassword({ user_id });
       return res.status(200).json({
-        success: true,  
+        success: true,
         message: "Password reset successfully",
       });
     } catch (error) {

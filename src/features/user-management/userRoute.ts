@@ -16,6 +16,12 @@ userRoute.post("/", [
   UserController.getUsers,
 ]);
 
+userRoute.get("/total", [
+  JwtMiddleware.verifyToken,
+  JwtMiddleware.adminOrViewer,
+  UserController.getTotalUsers,
+]);
+
 userRoute.put("/update", [
   JwtMiddleware.verifyToken,
   JwtMiddleware.adminOnly,
