@@ -27,6 +27,14 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
   UNFIT: "UNFIT",
 };
 let adminDefault: { user_id: string } | null;
+
+const now = new Date();
+const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+
+startOfDay.setHours(startOfDay.getHours() + 8);
+endOfDay.setHours(endOfDay.getHours() + 8);
+
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
     let adminDefault = await prisma.user.findFirst({
@@ -37,7 +45,7 @@ export class FdmService {
         user_id: true,
       },
     });
-    
+
     const resultValue = data.result
       ? resultEnumMapping[data.result as ResultKey]
       : undefined;
@@ -79,6 +87,9 @@ export class FdmService {
       attendance_health_result_id: validateData.attendance_health_result_id,
     };
 
+    const page = data.page || 1;
+    const pageSize = 100;
+
     const fdm = await prisma.attendanceHealthResult.findMany({
       where: whereClause,
       include: {
@@ -93,6 +104,11 @@ export class FdmService {
         },
         attachment_health_file: true,
       },
+      orderBy: { 
+        created_at: "desc" 
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     return fdm;
@@ -149,6 +165,10 @@ export class FdmService {
           },
         },
       },
+      orderBy: {
+        created_at: "desc",
+      },
+      take: 7,
     });
     return myFdm;
   }
@@ -191,63 +211,52 @@ export class FdmService {
         ? [admin.department.department_id]
         : validateData.department_id;
 
+    const user_where_clause = {
+      user_id: { notIn: [adminDefault?.user_id ?? ""] },
+      job_position_id: { in: jobPositionIds },
+      department_id: { in: departmentIds },
+      company_id: { in: companyIds },
+      employment_status_id: { in: employmentStatusIds },
+      deleted_at: null,
+    };
+
+    const time_where_clause = {
+        gte: validateData.startDate,
+        lte: validateData.endDate,
+    };
+  
+
     const resultFit = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT",
-        created_at: {
-          gte: validateData.startDate,
-          lte: validateData.endDate,
-        },
-        user: {
-          user_id: { notIn: [adminDefault?.user_id ?? ""] },
-          job_position_id: { in: jobPositionIds },
-          department_id: { in: departmentIds },
-          company_id: { in: companyIds },
-          employment_status_id: { in: employmentStatusIds },
-          deleted_at: null,
-        },
+        created_at: time_where_clause,
+        user: user_where_clause,
       },
     });
 
     const resultFitFollowUp = await prisma.attendanceHealthResult.count({
       where: {
         result: "FIT_FOLLOW_UP",
-        created_at: {
-          gte: validateData.startDate,
-          lte: validateData.endDate,
-        },
-        user: {
-          user_id: { notIn: [adminDefault?.user_id ?? ""] },
-          job_position_id: { in: jobPositionIds },
-          department_id: { in: departmentIds },
-          company_id: { in: companyIds },
-          employment_status_id: { in: employmentStatusIds },
-          deleted_at: null,
-        },
+        created_at: time_where_clause,
+        user: user_where_clause,
       },
     });
 
     const resultUnfit = await prisma.attendanceHealthResult.count({
       where: {
         result: "UNFIT",
-        created_at: {
-          gte: validateData.startDate,
-          lte: validateData.endDate,
-        },
-        user: {
-          user_id: { notIn: [adminDefault?.user_id ?? ""] },
-          job_position_id: { in: jobPositionIds },
-          department_id: { in: departmentIds },
-          company_id: { in: companyIds },
-          employment_status_id: { in: employmentStatusIds },
-          deleted_at: null,
-        },
+        created_at: time_where_clause,
+        user: user_where_clause,
       },
     });
+
+    const resultTotal = resultFit + resultFitFollowUp + resultUnfit;
+
     return {
       resultFit,
       resultFitFollowUp,
       resultUnfit,
+      totalRespondent: resultTotal,
     };
   }
 
@@ -286,8 +295,8 @@ export class FdmService {
     const countFilledToday = await prisma.attendanceHealthResult.count({
       where: {
         created_at: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          gte: startOfDay,
+          lte: endOfDay,
         },
         user: {
           user_id: { notIn: [adminDefault?.user_id ?? ""] },
@@ -350,8 +359,8 @@ export class FdmService {
     const usersFilledToday = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          gte: startOfDay,
+          lte: endOfDay,
         },
         user: {
           job_position_id: { in: jobPositionIds },
