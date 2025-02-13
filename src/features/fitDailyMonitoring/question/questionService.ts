@@ -91,7 +91,7 @@ export class QuestionService {
 
     startOfDay.setHours(startOfDay.getHours() + 8);
     endOfDay.setHours(endOfDay.getHours() + 8);
-    console.log(startOfDay, endOfDay);
+    
     const isFilled = await prisma.attendanceHealthResult.findFirst({
       where: {
         user_id,
@@ -101,7 +101,6 @@ export class QuestionService {
         },
       },
     });
-    console.log(isFilled);
 
     if(isFilled){
       return isFilled;
