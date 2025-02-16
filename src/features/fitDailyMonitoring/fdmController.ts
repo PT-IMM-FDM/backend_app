@@ -23,10 +23,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(formattedStartDate.getHours() + 8);
+        formattedStartDate.setHours(formattedStartDate.getHours());
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(formattedEndDate.getHours() + 8);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 24);
       }
 
       const getFDM = await FdmService.getFDM({
@@ -63,10 +63,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(formattedStartDate.getHours() + 8);
+        formattedStartDate.setHours(formattedStartDate.getHours());
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(formattedEndDate.getHours() + 8);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 24);
       }
 
       const getMyFDM = await FdmService.getMyFDM({
@@ -95,10 +95,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(formattedStartDate.getHours() + 8);
+        formattedStartDate.setHours(formattedStartDate.getHours());
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(formattedEndDate.getHours() + 8);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 24);
       }
 
       const countResult = await FdmService.countResult({
