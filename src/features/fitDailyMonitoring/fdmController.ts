@@ -23,10 +23,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(formattedStartDate.getHours());
+        formattedStartDate.setHours(formattedStartDate.getHours() - 8);
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(formattedEndDate.getHours() + 24);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 16);
       }
 
       const getFDM = await FdmService.getFDM({
