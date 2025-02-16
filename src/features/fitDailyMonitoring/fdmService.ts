@@ -28,12 +28,12 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
 };
 let adminDefault: { user_id: string } | null;
 
-const now = new Date();
-const startOfDay = new Date(now.setHours(0, 0, 0, 0));
-const endOfDay = new Date(now.setHours(23, 59, 59, 999));
+const today = new Date();
+const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-startOfDay.setHours(startOfDay.getHours() + 8);
-endOfDay.setHours(endOfDay.getHours() + 8);
+startOfDay.setHours(startOfDay.getHours());
+endOfDay.setHours(endOfDay.getHours());
 
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
