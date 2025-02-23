@@ -453,6 +453,8 @@ export class DocumentService {
       },
     });
 
+    console.log(fdm)
+
     if (fdm.length === 0) {
       throw new ErrorResponse(
         "No Data Fit Daily Monitoring found",
@@ -473,6 +475,7 @@ export class DocumentService {
     const worksheet = workbook.addWorksheet("FDM");
 
     const userColumns: Partial<ExcelJS.Column>[] = [
+      { header: "Date", key: "date", width: 20 },
       { header: "Result", key: "result", width: 15 },
       { header: "Full Name", key: "full_name", width: 25 },
       { header: "Phone Number", key: "phone_number", width: 15 },
@@ -501,6 +504,7 @@ export class DocumentService {
     worksheet.columns = [...userColumns, ...questionColumns];
 
     fdm.forEach((data) => {
+      data.created_at.setHours(data.created_at.getHours() + 8);
       const row: { [key: string]: any } = {
         full_name: data.user.full_name,
         phone_number: data.user.phone_number,
@@ -510,6 +514,7 @@ export class DocumentService {
         employment_status: data.user.employment_status.name,
         department: data.user.department.name,
         result: data.result,
+        date: data.created_at,
       };
 
       data.user.ResponseUser.forEach((response, index) => {
@@ -518,6 +523,8 @@ export class DocumentService {
 
       worksheet.addRow(row);
     });
+
+    worksheet.getColumn('date').numFmt = 'yyyy-mm-dd hh:mm:ss';
 
     const filename = "Export Data FDM Karyawan.xlsx";
     const filePath1 = path.join('./public', filename);
