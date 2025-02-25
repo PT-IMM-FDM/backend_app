@@ -453,8 +453,6 @@ export class DocumentService {
       },
     });
 
-    console.log(fdm)
-
     if (fdm.length === 0) {
       throw new ErrorResponse(
         "No Data Fit Daily Monitoring found",
