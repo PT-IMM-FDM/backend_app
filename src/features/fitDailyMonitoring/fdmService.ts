@@ -87,31 +87,52 @@ export class FdmService {
       attendance_health_result_id: validateData.attendance_health_result_id,
     };
 
-    const page = data.page || 1;
+    const page = data.page;
     const pageSize = 100;
 
-    const fdm = await prisma.attendanceHealthResult.findMany({
-      where: whereClause,
-      include: {
-        user: {
-          select: {
-            full_name: true,
-            job_position: { select: { name: true } },
-            department: { select: { name: true } },
-            company: { select: { name: true } },
-            employment_status: { select: { name: true } },
+    if (data.page) {
+      const fdm = await prisma.attendanceHealthResult.findMany({
+        where: whereClause,
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              job_position: { select: { name: true } },
+              department: { select: { name: true } },
+              company: { select: { name: true } },
+              employment_status: { select: { name: true } },
+            },
           },
+          attachment_health_file: true,
         },
-        attachment_health_file: true,
-      },
-      orderBy: { 
-        created_at: "desc" 
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+        orderBy: { created_at: "desc" },
+        skip: (page! - 1) * pageSize,
+        take: pageSize,
+      });
 
-    return fdm;
+      return fdm;
+    } else {
+      const fdm = await prisma.attendanceHealthResult.findMany({
+        where: whereClause,
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              job_position: { select: { name: true } },
+              department: { select: { name: true } },
+              company: { select: { name: true } },
+              employment_status: { select: { name: true } },
+            },
+          },
+          attachment_health_file: true,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
+
+      return fdm;
+    }
   }
 
   static async getMyFDM(data: GetMyFDMRequest): Promise<GetMyFDMResponse> {
@@ -221,10 +242,9 @@ export class FdmService {
     };
 
     const time_where_clause = {
-        gte: validateData.startDate,
-        lte: validateData.endDate,
+      gte: validateData.startDate,
+      lte: validateData.endDate,
     };
-  
 
     const resultFit = await prisma.attendanceHealthResult.count({
       where: {
