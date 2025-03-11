@@ -91,10 +91,10 @@ export class DocumentController {
       let startDate;
       let endDate;
       if (customDateFrom && customDateTo) {
-        startDate = new Date(customDateFrom);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(customDateTo);
-        endDate.setHours(23, 59, 59, 999);
+        startDate = new Date(Date.parse(customDateFrom.toString()));
+        startDate.setHours(startDate.getHours() - 8);
+        endDate = new Date(Date.parse(customDateTo.toString()));
+        endDate.setHours(endDate.getHours() + 16);
       }
 
       const file = await DocumentService.exportDataFdm({

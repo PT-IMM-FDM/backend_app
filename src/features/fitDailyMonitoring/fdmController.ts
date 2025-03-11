@@ -14,7 +14,7 @@ export class FdmController {
       uid = user_id 
       ahrid = attendance_health_result_id
       */
-      const { startDate, endDate, uid, jpid, esid, cid, did, result, ahrid } =
+      const { startDate, endDate, uid, jpid, esid, cid, did, result, ahrid, page } =
         req.query;
 
       const adminUserId = res.locals.user.user_id;
@@ -23,10 +23,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(0, 0, 0, 0);
+        formattedStartDate.setHours(formattedStartDate.getHours() - 8);
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(23, 59, 59, 999);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 16);
       }
 
       const getFDM = await FdmService.getFDM({
@@ -40,6 +40,7 @@ export class FdmController {
         department_id: parseArrayParam(did),
         result: result as string,
         attendance_health_result_id: Number(ahrid),
+        page: Number(page),
       });
 
       return res.status(200).json({
@@ -62,10 +63,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(0, 0, 0, 0);
+        formattedStartDate.setHours(formattedStartDate.getHours());
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(23, 59, 59, 999);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 24);
       }
 
       const getMyFDM = await FdmService.getMyFDM({
@@ -94,10 +95,10 @@ export class FdmController {
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
-        formattedStartDate.setHours(0, 0, 0, 0);
+        formattedStartDate.setHours(formattedStartDate.getHours());
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
-        formattedEndDate.setHours(23, 59, 59, 999);
+        formattedEndDate.setHours(formattedEndDate.getHours() + 24);
       }
 
       const countResult = await FdmService.countResult({

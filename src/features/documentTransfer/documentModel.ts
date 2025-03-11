@@ -27,6 +27,7 @@ export type ExportDataFdmRequest = {
 export type ResultKey = Result;
 
 export type GenerateExcelFdmRequest = {
+  created_at: Date;
   result: string;
   user: {
     full_name: string;

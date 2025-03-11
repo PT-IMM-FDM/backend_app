@@ -11,6 +11,7 @@ export type GetFDMRequest = {
   company_id?: number[];
   result?: string;
   attendance_health_result_id?: number;
+  page?: number;
 };
 
 export type GetFDMResponse = AttendanceHealthResult[];
