@@ -490,7 +490,7 @@ static async exportDataFdm(data: ExportDataFdmRequest) {
     const filePath1 = path.join("./public", filename);
     await workbook.xlsx.writeFile(filePath1);
 
-    const fileUrl = `${process.env.API_URL || "http://localhost:3030"}/public/${filename}`;
+    const fileUrl = `public/${filename}`;
     const date = new Date().toLocaleString;
     logger.info(`File has been created: ${fileUrl} at ${date}`);
 
