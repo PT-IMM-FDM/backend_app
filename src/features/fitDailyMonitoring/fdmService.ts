@@ -32,8 +32,9 @@ const today = new Date();
 const startOfDay = new Date(today.setHours(0, 0, 0, 0));
 const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-startOfDay.setHours(startOfDay.getHours());
-endOfDay.setHours(endOfDay.getHours());
+const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
+const startOfDayUtc = new Date(startOfDay.getTime() - utcOffset);
+const endOfDayUtc = new Date(endOfDay.getTime() - utcOffset);
 
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
@@ -315,8 +316,8 @@ export class FdmService {
     const countFilledToday = await prisma.attendanceHealthResult.count({
       where: {
         created_at: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfDayUtc,
+          lte: endOfDayUtc,
         },
         user: {
           user_id: { notIn: [adminDefault?.user_id ?? ""] },
@@ -379,8 +380,8 @@ export class FdmService {
     const usersFilledToday = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfDayUtc,
+          lte: endOfDayUtc,
         },
         user: {
           job_position_id: { in: jobPositionIds },
@@ -541,8 +542,7 @@ export class FdmService {
       FDMValidation.MOST_QUESTION_ANSWERED,
       data
     );
-    const startDate = new Date(new Date().setHours(0, 0, 0, 0));
-    const endDate = new Date(new Date().setHours(23, 59, 59, 999));
+
     const jobPositionIds = validateData.job_position_id;
     const companyIds = validateData.company_id;
     const employmentStatusIds = validateData.employment_status_id;
@@ -552,8 +552,8 @@ export class FdmService {
     const responsesToday = await prisma.responseUser.findMany({
       where: {
         created_at: {
-          gte: startDate,
-          lte: endDate,
+          gte: startOfDayUtc,
+          lte: endOfDayUtc,
         },
         user: {
           user_id: { notIn: [adminDefault?.user_id ?? ""] },

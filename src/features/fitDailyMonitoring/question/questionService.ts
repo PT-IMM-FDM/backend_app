@@ -89,15 +89,17 @@ export class QuestionService {
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
 
-    startOfDay.setHours(startOfDay.getHours() + 8);
-    endOfDay.setHours(endOfDay.getHours() + 8);
+    const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
+
+    const startOfDayUtc = new Date(startOfDay.getTime() - utcOffset);
+    const endOfDayUtc = new Date(endOfDay.getTime() - utcOffset);
     
     const isFilled = await prisma.attendanceHealthResult.findFirst({
       where: {
         user_id,
         created_at: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfDayUtc,
+          lte: endOfDayUtc,
         },
       },
     });
