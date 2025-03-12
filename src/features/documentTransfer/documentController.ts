@@ -94,13 +94,13 @@ export class DocumentController {
       
       if (startDate && endDate) {
         let startDateFormat = new Date(Date.parse(startDate.toString()));
-        startDate.setHours(0, 0, 0, 0);
+        startDateFormat.setHours(0, 0, 0, 0);
         let endDateFormat = new Date(Date.parse(endDate.toString()));
-        endDate.setHours(23, 59, 59, 999);
+        endDateFormat.setHours(23, 59, 59, 999);
         const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
 
-        startDateUtc = new Date(startDate.getTime() - utcOffset);
-        endDateUtc = new Date(endDate.getTime() - utcOffset);
+        startDateUtc = new Date(startDateFormat.getTime() - utcOffset);
+        endDateUtc = new Date(endDateFormat.getTime() - utcOffset);
       }
 
       const file = await DocumentService.exportDataFdm({
