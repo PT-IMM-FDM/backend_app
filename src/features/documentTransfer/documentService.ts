@@ -1,6 +1,6 @@
 import { Validation } from "../../validations";
 import { ErrorResponse } from "../../models";
-import { prisma } from "../../applications";
+import { logger, prisma } from "../../applications";
 import { DocumentValidation } from "./documentValidation";
 import {
   ExportDataFdmRequest,
@@ -361,117 +361,27 @@ export class DocumentService {
   }
   
 
-  static async exportDataFdm(data: ExportDataFdmRequest) {
-    let resultValue; // FIT, FIT_FOLLOW_UP, UNFIT
-    let adminDefault;
-    adminDefault = await prisma.user.findMany({
-      where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
+static async exportDataFdm(data: ExportDataFdmRequest) {
+    let resultValue;
+    let adminDefault = await prisma.user.findMany({
+      where: { phone_number: "00000" },
+      select: { user_id: true },
     });
+
     if (data.result) {
       resultValue = resultEnumMapping[data.result as ResultKey];
     }
 
-    const validateData = Validation.validate(
-      DocumentValidation.GET_DATA_FDM,
-      data
-    );
+    const validateData = Validation.validate(DocumentValidation.GET_DATA_FDM, data);
+    const batchSize = 1000; // Ambil data per batch 1000
+    let skip = 0;
+    let hasMoreData = true;
 
-    const fdm = await prisma.attendanceHealthResult.findMany({
-      where: {
-        created_at: {
-          gte: validateData.customDateFrom,
-          lte: validateData.customDateTo,
-        },
-        result: resultValue,
-        user: {
-          user_id: {
-            in: validateData.user_id ? [...validateData.user_id] : undefined,
-            notIn: adminDefault.map((admin) => admin.user_id),
-          },
-          job_position: {
-            name: { in: validateData.job_position_name },
-          },
-          department: {
-            name: { in: validateData.department_name },
-          },
-          company: {
-            name: { in: validateData.company_name },
-          },
-          employment_status: {
-            name: { in: validateData.employment_status_name },
-          },
-          deleted_at: null,
-        },
-      },
-      include: {
-        user: {
-          select: {
-            full_name: true,
-            phone_number: true,
-            birth_date: true,
-            job_position: {
-              select: {
-                name: true,
-              },
-            },
-            department: {
-              select: {
-                name: true,
-              },
-            },
-            company: {
-              select: {
-                name: true,
-              },
-            },
-            employment_status: {
-              select: {
-                name: true,
-              },
-            },
-            ResponseUser: {
-              select: {
-                question: {
-                  select: {
-                    question: true,
-                  },
-                },
-                question_answer: {
-                  select: {
-                    question_answer: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (fdm.length === 0) {
-      throw new ErrorResponse(
-        "No Data Fit Daily Monitoring found",
-        404,
-        ["No Data Fit Daily Monitoring found"],
-        "NO_DATA_FDM_FOUND"
-      );
-    }
-
-    const excelFile = await this.generateExcelFdm(fdm);
-
-    // return path the file
-    return excelFile;
-  }
-
-  static async generateExcelFdm(fdm: GenerateExcelFdmRequest) {
+    // Buat workbook Excel dan worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("FDM");
 
+    // Definisi kolom tetap
     const userColumns: Partial<ExcelJS.Column>[] = [
       { header: "Date", key: "date", width: 20 },
       { header: "Result", key: "result", width: 15 },
@@ -484,53 +394,106 @@ export class DocumentService {
       { header: "Department", key: "department", width: 30 },
     ];
 
-    // Kolom Pertanyaan Dinamis
-    const questionColumns: Partial<ExcelJS.Column>[] = [];
+    worksheet.columns = userColumns;
 
-    if (fdm.length > 0 && fdm[0].user.ResponseUser.length > 0) {
-      fdm[0].user.ResponseUser.forEach((response, index) => {
-        if (response.question && response.question.question) {
-          questionColumns.push({
+    while (hasMoreData) {
+      console.log(`Fetching batch: ${skip} to ${skip + batchSize}`);
+
+      const fdm = await prisma.attendanceHealthResult.findMany({
+        take: batchSize,
+        skip: skip,
+        where: {
+          created_at: {
+            gte: validateData.customDateFrom,
+            lte: validateData.customDateTo,
+          },
+          result: resultValue,
+          user: {
+            user_id: {
+              in: validateData.user_id ? [...validateData.user_id] : undefined,
+              notIn: adminDefault.map((admin) => admin.user_id),
+            },
+            job_position: { name: { in: validateData.job_position_name } },
+            department: { name: { in: validateData.department_name } },
+            company: { name: { in: validateData.company_name } },
+            employment_status: { name: { in: validateData.employment_status_name } },
+            deleted_at: null,
+          },
+        },
+        include: {
+          user: {
+            select: {
+              full_name: true,
+              phone_number: true,
+              birth_date: true,
+              job_position: { select: { name: true } },
+              department: { select: { name: true } },
+              company: { select: { name: true } },
+              employment_status: { select: { name: true } },
+              ResponseUser: {
+                select: {
+                  question: { select: { question: true } },
+                  question_answer: { select: { question_answer: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (fdm.length === 0) {
+        hasMoreData = false;
+        break;
+      }
+
+      // Buat kolom pertanyaan dinamis dari batch pertama
+      if (skip === 0 && fdm[0].user.ResponseUser.length > 0) {
+        const questionColumns: Partial<ExcelJS.Column>[] = fdm[0].user.ResponseUser.map(
+          (response, index) => ({
             header: response.question.question,
             key: `question_${index + 1}`,
             width: 15,
-          });
-        }
+          })
+        );
+        worksheet.columns = [...userColumns, ...questionColumns];
+      }
+
+      // Tambahkan data ke worksheet
+      fdm.forEach((data) => {
+        data.created_at.setHours(data.created_at.getHours() + 8);
+        const row: { [key: string]: any } = {
+          date: data.created_at,
+          result: data.result,
+          full_name: data.user.full_name,
+          phone_number: data.user.phone_number,
+          birth_date: data.user.birth_date,
+          company: data.user.company.name,
+          job_position: data.user.job_position.name,
+          employment_status: data.user.employment_status.name,
+          department: data.user.department.name,
+        };
+
+        data.user.ResponseUser.forEach((response, index) => {
+          row[`question_${index + 1}`] = response.question_answer.question_answer;
+        });
+
+        worksheet.addRow(row);
       });
+
+      skip += batchSize;
     }
 
-    worksheet.columns = [...userColumns, ...questionColumns];
+    worksheet.getColumn("date").numFmt = "yyyy-mm-dd hh:mm:ss";
 
-    fdm.forEach((data) => {
-      data.created_at.setHours(data.created_at.getHours() + 8);
-      const row: { [key: string]: any } = {
-        full_name: data.user.full_name,
-        phone_number: data.user.phone_number,
-        birth_date: data.user.birth_date,
-        company: data.user.company.name,
-        job_position: data.user.job_position.name,
-        employment_status: data.user.employment_status.name,
-        department: data.user.department.name,
-        result: data.result,
-        date: data.created_at,
-      };
-
-      data.user.ResponseUser.forEach((response, index) => {
-        row[`question_${index + 1}`] = response.question_answer.question_answer;
-      });
-
-      worksheet.addRow(row);
-    });
-
-    worksheet.getColumn('date').numFmt = 'yyyy-mm-dd hh:mm:ss';
-
-    const filename = "Export Data FDM Karyawan.xlsx";
-    const filePath1 = path.join('./public', filename);
-    const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
-    console.log("file has been created: ", filePath1);
-
+    // Simpan file Excel
+    const filename = `Export_Data_FDM_${Date.now()}.xlsx`;
+    const filePath1 = path.join("./public", filename);
     await workbook.xlsx.writeFile(filePath1);
 
-    return filePath;
+    const fileUrl = `${process.env.API_URL || "http://localhost:3030"}/public/${filename}`;
+    const date = new Date().toLocaleString;
+    logger.info(`File has been created: ${fileUrl} at ${date}`);
+
+    return fileUrl;
   }
 }
