@@ -527,6 +527,7 @@ export class DocumentService {
     const filename = "Export Data FDM Karyawan.xlsx";
     const filePath1 = path.join('./public', filename);
     const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
+    console.log("file has been created: ", filePath1);
 
     await workbook.xlsx.writeFile(filePath1);
 

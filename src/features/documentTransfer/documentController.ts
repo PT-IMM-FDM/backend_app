@@ -90,17 +90,24 @@ export class DocumentController {
       } = req.body;
       let startDate;
       let endDate;
+      let startDateUtc;
+      let endDateUtc;
+      
       if (customDateFrom && customDateTo) {
         startDate = new Date(Date.parse(customDateFrom.toString()));
-        startDate.setHours(startDate.getHours() - 8);
+        startDate.setHours(0, 0, 0, 0);
         endDate = new Date(Date.parse(customDateTo.toString()));
-        endDate.setHours(endDate.getHours() + 16);
+        endDate.setHours(23, 59, 59, 999);
+        const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
+
+        startDateUtc = new Date(startDate.getTime() - utcOffset);
+        endDateUtc = new Date(endDate.getTime() - utcOffset);
       }
 
       const file = await DocumentService.exportDataFdm({
         result,
-        customDateFrom: startDate,
-        customDateTo: endDate,
+        customDateFrom: startDateUtc,
+        customDateTo: endDateUtc,
         user_id,
         job_position_name,
         department_name,
