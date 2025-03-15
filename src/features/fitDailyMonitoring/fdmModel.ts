@@ -4,6 +4,7 @@ export type GetFDMRequest = {
   adminUserId: string;
   startDate?: Date;
   endDate?: Date;
+  name?: string;
   user_id?: string;
   job_position_id?: number[];
   employment_status_id?: number[];

@@ -14,7 +14,7 @@ export class FdmController {
       uid = user_id 
       ahrid = attendance_health_result_id
       */
-      const { startDate, endDate, uid, jpid, esid, cid, did, result, ahrid, page } =
+      const { startDate, endDate, uid, jpid, esid, cid, did, result, ahrid, page, name } =
         req.query;
 
       const adminUserId = res.locals.user.user_id;
@@ -39,6 +39,7 @@ export class FdmController {
         adminUserId,
         startDate: startOfDayUtc,
         endDate: endOfDayUtc,
+        name: name as string,
         user_id: uid as string,
         job_position_id: parseArrayParam(jpid),
         employment_status_id: parseArrayParam(esid),

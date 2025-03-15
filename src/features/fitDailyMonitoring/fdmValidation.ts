@@ -5,6 +5,7 @@ export class FDMValidation {
     adminUserId: z.string(),
     startDate: z.date().optional(),
     endDate: z.date().optional(),
+    name: z.string().optional(),
     user_id: z.string().optional(),
     company_id: z.number().array().optional(),
     job_position_id: z.number().array().optional(),

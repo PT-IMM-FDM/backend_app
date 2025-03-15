@@ -19,6 +19,7 @@ import {
 import { pathToFileUrl } from "../../utils";
 import { deleteFile } from "../../utils/delete_file";
 import { startOfToday, endOfToday } from "../../utils/date";
+import { Prisma } from "@prisma/client";
 
 type ResultEnum = ResultKey;
 
@@ -67,6 +68,11 @@ export class FdmService {
       },
       result: resultValue,
       user: {
+        full_name: {
+          notIn: [adminDefault?.user_id ?? ""],
+          contains: validateData.name,
+          mode: Prisma.QueryMode.insensitive,
+        },
         user_id: { notIn: [adminDefault?.user_id ?? ""] },
         job_position_id: { in: validateData.job_position_id },
         department_id: isViewer
