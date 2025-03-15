@@ -18,6 +18,7 @@ import {
 } from "./fdmModel";
 import { pathToFileUrl } from "../../utils";
 import { deleteFile } from "../../utils/delete_file";
+import { startOfToday, endOfToday } from "../../utils/date";
 
 type ResultEnum = ResultKey;
 
@@ -27,14 +28,6 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
   UNFIT: "UNFIT",
 };
 let adminDefault: { user_id: string } | null;
-
-const today = new Date();
-const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-
-const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
-const startOfDayUtc = new Date(startOfDay.getTime() - utcOffset);
-const endOfDayUtc = new Date(endOfDay.getTime() - utcOffset);
 
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
@@ -316,8 +309,8 @@ export class FdmService {
     const countFilledToday = await prisma.attendanceHealthResult.count({
       where: {
         created_at: {
-          gte: startOfDayUtc,
-          lte: endOfDayUtc,
+          gte: startOfToday(),
+          lte: endOfToday(),
         },
         user: {
           user_id: { notIn: [adminDefault?.user_id ?? ""] },
@@ -380,8 +373,8 @@ export class FdmService {
     const usersFilledToday = await prisma.attendanceHealthResult.findMany({
       where: {
         created_at: {
-          gte: startOfDayUtc,
-          lte: endOfDayUtc,
+          gte: startOfToday(),
+          lte: endOfToday(),
         },
         user: {
           job_position_id: { in: jobPositionIds },
@@ -552,8 +545,8 @@ export class FdmService {
     const responsesToday = await prisma.responseUser.findMany({
       where: {
         created_at: {
-          gte: startOfDayUtc,
-          lte: endOfDayUtc,
+          gte: startOfToday(),
+          lte: endOfToday(),
         },
         user: {
           user_id: { notIn: [adminDefault?.user_id ?? ""] },
