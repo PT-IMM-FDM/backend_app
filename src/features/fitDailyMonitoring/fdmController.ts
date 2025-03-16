@@ -29,16 +29,12 @@ export class FdmController {
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
         formattedEndDate.setHours(23, 59, 59, 999);
-
-        const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
-        startOfDayUtc = new Date(formattedStartDate.getTime() - utcOffset);
-        endOfDayUtc = new Date(formattedEndDate.getTime() - utcOffset);
       }
 
       const getFDM = await FdmService.getFDM({
         adminUserId,
-        startDate: startOfDayUtc,
-        endDate: endOfDayUtc,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         name: name as string,
         user_id: uid as string,
         job_position_id: parseArrayParam(jpid),
@@ -76,10 +72,6 @@ export class FdmController {
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
         formattedEndDate.setHours(23, 59, 59, 999);
-
-        const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
-        startOfDayUtc = new Date(formattedStartDate.getTime() - utcOffset);
-        endOfDayUtc = new Date(formattedEndDate.getTime() - utcOffset);
       }
 
       const getMyFDM = await FdmService.getMyFDM({
@@ -105,8 +97,6 @@ export class FdmController {
 
       let formattedStartDate;
       let formattedEndDate;
-      let startOfDayUtc;
-      let endOfDayUtc;
 
       if (startDate && endDate) {
         formattedStartDate = new Date(Date.parse(startDate.toString()));
@@ -114,17 +104,13 @@ export class FdmController {
 
         formattedEndDate = new Date(Date.parse(endDate.toString()));
         formattedEndDate.setHours(23, 59, 59, 999);
-        
-        const utcOffset = 8 * 60 * 60 * 1000; // -8 hours in milliseconds
-        startOfDayUtc = new Date(formattedStartDate.getTime() - utcOffset);
-        endOfDayUtc = new Date(formattedEndDate.getTime() - utcOffset);
       }
 
       const countResult = await FdmService.countResult({
         admin_user_id: adminUserId,
         user_id: uid as string,
-        startDate: startOfDayUtc,
-        endDate: endOfDayUtc,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         job_position_id: parseArrayParam(jpid),
         employment_status_id: parseArrayParam(esid),
         company_id: parseArrayParam(cid),
