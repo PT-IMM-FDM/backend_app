@@ -67,7 +67,7 @@ export class DocumentService {
           deleted_at: null,
         },
         deleted_at: null,
-        user_id: {notIn: adminDefault.map((admin) => admin.user_id)},
+        user_id: { notIn: adminDefault.map((admin) => admin.user_id) },
       },
       select: {
         full_name: true,
@@ -137,7 +137,10 @@ export class DocumentService {
     });
     const file_name = "Kumpulan Data Karyawan.xlsx";
     const filePath1 = path.join("./public", file_name);
-    const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
+    const filePath = pathToFileUrl(
+      filePath1,
+      process.env.API_URL || "localhost:3030"
+    );
 
     await workbook.xlsx.writeFile(filePath1);
 
@@ -183,7 +186,7 @@ export class DocumentService {
         break;
       }
       await prisma.$transaction(async (prisma) => {
-        const userBirthDate = new Date(user[3] + 'GMT-0000');
+        const userBirthDate = new Date(user[3] + "GMT-0000");
         const company = await prisma.company.findFirst({
           where: {
             name: user[4],
@@ -215,37 +218,36 @@ export class DocumentService {
           },
         });
 
-        if (findUser) {
-          throw new ErrorResponse(
-            "There Are User Phone number already exists or account has been created",
-            400,
-            ["phone_number"],
-            "PHONE_NUMBER_ALREADY_EXISTS"
+        if (!findUser) {
+          // throw new ErrorResponse(
+          //   "There Are User Phone number already exists or account has been created",
+          //   400,
+          //   ["phone_number"],
+          //   "PHONE_NUMBER_ALREADY_EXISTS"
+          // );
+          const passwordDefault = await password_generator(
+            user[1] as string,
+            userBirthDate
           );
+
+          const hashedPassword = await hashPassword(passwordDefault);
+          const userData = {
+            full_name: user[1] as string,
+            phone_number: user[2] as string,
+            birth_date: userBirthDate,
+            password: hashedPassword,
+            company_id: company?.company_id as number,
+            job_position_id: jobPosition?.job_position_id as number,
+            employment_status_id:
+              employmentStatus?.employment_status_id as number,
+            department_id: department?.department_id as number,
+            role_id: role?.role_id as number,
+          };
+
+          await prisma.user.create({
+            data: userData,
+          });
         }
-
-        const passwordDefault = await password_generator(
-          user[1] as string,
-          userBirthDate
-        );
-
-        const hashedPassword = await hashPassword(passwordDefault);
-        const userData = {
-          full_name: user[1] as string,
-          phone_number: user[2] as string,
-          birth_date: userBirthDate,
-          password: hashedPassword,
-          company_id: company?.company_id as number,
-          job_position_id: jobPosition?.job_position_id as number,
-          employment_status_id:
-            employmentStatus?.employment_status_id as number,
-          department_id: department?.department_id as number,
-          role_id: role?.role_id as number,
-        };
-
-        await prisma.user.create({
-          data: userData,
-        });
       });
       // Remove the file after the data is imported
       fs.rmSync("./public/uploads/users_file/", {
@@ -260,7 +262,7 @@ export class DocumentService {
   static async templateFileListUsers() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Users");
-  
+
     // Define columns
     worksheet.columns = [
       { header: "Full Name", key: "full_name", width: 20 },
@@ -271,7 +273,7 @@ export class DocumentService {
       { header: "Employment Status", key: "employment_status", width: 30 },
       { header: "Department", key: "department", width: 30 },
     ];
-  
+
     // Fetch lists from the database
     const listCompany = await prisma.company.findMany({
       where: { deleted_at: null },
@@ -289,7 +291,7 @@ export class DocumentService {
       where: { deleted_at: null },
       select: { name: true },
     });
-  
+
     // Example row
     const exampleRow = worksheet.addRow({
       full_name: "Nama Lengkap",
@@ -301,8 +303,8 @@ export class DocumentService {
       department: "Nama departemen diisi dengan isian dropdown",
     });
 
-    exampleRow.getCell(1).alignment = { wrapText: true, vertical: 'top' };
-  
+    exampleRow.getCell(1).alignment = { wrapText: true, vertical: "top" };
+
     exampleRow.eachCell((cell) => {
       cell.fill = {
         type: "pattern",
@@ -310,26 +312,38 @@ export class DocumentService {
         fgColor: { argb: "D3D3D3" },
       };
     });
-  
+
     worksheet.addRow([]);
-  
+
     // Add reference lists in right-hand columns
-    worksheet.getColumn(10).values = ["List Company", ...listCompany.map((company) => company.name)];
+    worksheet.getColumn(10).values = [
+      "List Company",
+      ...listCompany.map((company) => company.name),
+    ];
     worksheet.getColumn(10).width = 35;
-  
-    worksheet.getColumn(11).values = ["List Job Position", ...listJobPosition.map((job) => job.name)];
+
+    worksheet.getColumn(11).values = [
+      "List Job Position",
+      ...listJobPosition.map((job) => job.name),
+    ];
     worksheet.getColumn(11).width = 30;
-  
-    worksheet.getColumn(12).values = ["List Employment Status", ...listEmploymentStatus.map((status) => status.name)];
+
+    worksheet.getColumn(12).values = [
+      "List Employment Status",
+      ...listEmploymentStatus.map((status) => status.name),
+    ];
     worksheet.getColumn(12).width = 30;
-  
-    worksheet.getColumn(13).values = ["List Department", ...listDepartment.map((department) => department.name)];
+
+    worksheet.getColumn(13).values = [
+      "List Department",
+      ...listDepartment.map((department) => department.name),
+    ];
     worksheet.getColumn(13).width = 30;
-  
+
     // Set up dropdowns using dataValidations
     const startRow = 3; // Row where the dropdown should start
     const endRow = 500; // Define how many rows you want to include for the dropdown
-  
+
     for (let row = startRow; row <= endRow; row++) {
       worksheet.getCell(`D${row}`).dataValidation = {
         type: "list",
@@ -354,14 +368,16 @@ export class DocumentService {
     }
     const filename = "Template Import Data Karyawan.xlsx";
     const filePath1 = path.join("./public", filename);
-    const filePath = pathToFileUrl(filePath1, process.env.API_URL || "localhost:3030");
+    const filePath = pathToFileUrl(
+      filePath1,
+      process.env.API_URL || "localhost:3030"
+    );
 
     await workbook.xlsx.writeFile(filePath1);
     return filePath;
   }
-  
 
-static async exportDataFdm(data: ExportDataFdmRequest) {
+  static async exportDataFdm(data: ExportDataFdmRequest) {
     let resultValue;
     let adminDefault = await prisma.user.findMany({
       where: { phone_number: "00000" },
@@ -372,7 +388,10 @@ static async exportDataFdm(data: ExportDataFdmRequest) {
       resultValue = resultEnumMapping[data.result as ResultKey];
     }
 
-    const validateData = Validation.validate(DocumentValidation.GET_DATA_FDM, data);
+    const validateData = Validation.validate(
+      DocumentValidation.GET_DATA_FDM,
+      data
+    );
     const batchSize = 1000; // Ambil data per batch 1000
     let skip = 0;
     let hasMoreData = true;
@@ -416,7 +435,9 @@ static async exportDataFdm(data: ExportDataFdmRequest) {
             job_position: { name: { in: validateData.job_position_name } },
             department: { name: { in: validateData.department_name } },
             company: { name: { in: validateData.company_name } },
-            employment_status: { name: { in: validateData.employment_status_name } },
+            employment_status: {
+              name: { in: validateData.employment_status_name },
+            },
             deleted_at: null,
           },
         },
@@ -448,13 +469,12 @@ static async exportDataFdm(data: ExportDataFdmRequest) {
 
       // Buat kolom pertanyaan dinamis dari batch pertama
       if (skip === 0 && fdm[0].user.ResponseUser.length > 0) {
-        const questionColumns: Partial<ExcelJS.Column>[] = fdm[0].user.ResponseUser.map(
-          (response, index) => ({
+        const questionColumns: Partial<ExcelJS.Column>[] =
+          fdm[0].user.ResponseUser.map((response, index) => ({
             header: response.question.question,
             key: `question_${index + 1}`,
             width: 15,
-          })
-        );
+          }));
         worksheet.columns = [...userColumns, ...questionColumns];
       }
 
@@ -474,7 +494,8 @@ static async exportDataFdm(data: ExportDataFdmRequest) {
         };
 
         data.user.ResponseUser.forEach((response, index) => {
-          row[`question_${index + 1}`] = response.question_answer.question_answer;
+          row[`question_${index + 1}`] =
+            response.question_answer.question_answer;
         });
 
         worksheet.addRow(row);
@@ -490,7 +511,9 @@ static async exportDataFdm(data: ExportDataFdmRequest) {
     const filePath1 = path.join("./public", filename);
     await workbook.xlsx.writeFile(filePath1);
 
-    const fileUrl = `${process.env.API_URL || "http://localhost:3030"}/public/${filename}`;
+    const fileUrl = `${
+      process.env.API_URL || "http://localhost:3030"
+    }/public/${filename}`;
     const date = new Date().toLocaleString;
     logger.info(`File has been created: ${fileUrl} at ${date}`);
 
