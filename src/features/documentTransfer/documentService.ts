@@ -392,15 +392,20 @@ export class DocumentService {
       DocumentValidation.GET_DATA_FDM,
       data
     );
-    const batchSize = 1000; // Ambil data per batch 1000
+
+    const allQuestions = await prisma.question.findMany({
+      where: { deleted_at: null },
+      select: { question_id: true, question: true },
+      orderBy: { question_id: 'asc' }
+    });
+
+    const batchSize = 2000; // Increased from 1000
     let skip = 0;
     let hasMoreData = true;
 
-    // Buat workbook Excel dan worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("FDM");
 
-    // Definisi kolom tetap
     const userColumns: Partial<ExcelJS.Column>[] = [
       { header: "Date", key: "date", width: 20 },
       { header: "Result", key: "result", width: 15 },
@@ -413,9 +418,17 @@ export class DocumentService {
       { header: "Department", key: "department", width: 30 },
     ];
 
-    worksheet.columns = userColumns;
+    const questionColumns: Partial<ExcelJS.Column>[] = allQuestions.map((question) => ({
+      header: question.question,
+      key: `question_${question.question_id}`,
+      width: 20,
+    }));
+
+    worksheet.columns = [...userColumns, ...questionColumns];
+    console.log(`Found ${allQuestions.length} questions from database`);
 
     while (hasMoreData) {
+      const startTime = Date.now();
       console.log(`Fetching batch: ${skip} to ${skip + batchSize}`);
 
       const fdm = await prisma.attendanceHealthResult.findMany({
@@ -453,13 +466,14 @@ export class DocumentService {
               employment_status: { select: { name: true } },
               ResponseUser: {
                 select: {
-                  question: { select: { question: true } },
+                  question: { select: { question_id: true, question: true } },
                   question_answer: { select: { question_answer: true } },
                 },
               },
             },
           },
         },
+        orderBy: { created_at: 'asc' },
       });
 
       if (fdm.length === 0) {
@@ -467,19 +481,8 @@ export class DocumentService {
         break;
       }
 
-      // Buat kolom pertanyaan dinamis dari batch pertama
-      if (skip === 0 && fdm[0].user.ResponseUser.length > 0) {
-        const questionColumns: Partial<ExcelJS.Column>[] =
-          fdm[0].user.ResponseUser.map((response, index) => ({
-            header: response.question.question,
-            key: `question_${index + 1}`,
-            width: 15,
-          }));
-        worksheet.columns = [...userColumns, ...questionColumns];
-      }
-
-      // Tambahkan data ke worksheet
-      fdm.forEach((data) => {
+      // Optimasi: Bulk add rows instead of individual addRow
+      const rows = fdm.map((data) => {
         data.created_at.setHours(data.created_at.getHours() + 8);
         const row: { [key: string]: any } = {
           date: data.created_at,
@@ -493,29 +496,51 @@ export class DocumentService {
           department: data.user.department.name,
         };
 
-        data.user.ResponseUser.forEach((response, index) => {
-          row[`question_${index + 1}`] =
-            response.question_answer.question_answer;
+        // Initialize all question columns
+        allQuestions.forEach(question => {
+          row[`question_${question.question_id}`] = '';
         });
 
-        worksheet.addRow(row);
+        // Fill answers
+        data.user.ResponseUser.forEach((response) => {
+          if (response.question && response.question.question_id) {
+            const questionKey = `question_${response.question.question_id}`;
+            row[questionKey] = response.question_answer.question_answer;
+          }
+        });
+
+        return row;
       });
 
+      // Bulk add rows - much faster than individual addRow
+      worksheet.addRows(rows);
+
       skip += batchSize;
+      const batchTime = Date.now() - startTime;
+      console.log(`Batch processed in ${batchTime}ms`);
     }
 
     worksheet.getColumn("date").numFmt = "yyyy-mm-dd hh:mm:ss";
 
-    // Simpan file Excel
-    const filename = `Export_Data_FDM_${Date.now()}.xlsx`;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric'
+    }).replace(/\//g, '-');
+
+    const timeStr = now.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).replace(/:/g, '-');
+
+    const filename = `Export_Data_FDM_${dateStr}_${timeStr}.xlsx`;
     const filePath1 = path.join("./public", filename);
     await workbook.xlsx.writeFile(filePath1);
 
-    const fileUrl = `${
-      process.env.API_URL || "http://localhost:3030"
-    }/public/${filename}`;
-    const date = new Date().toLocaleString;
-    logger.info(`File has been created: ${fileUrl} at ${date}`);
+    const fileUrl = `${process.env.API_URL || "http://localhost:3030"}/public/${filename}`;
+    logger.info(`File has been created: ${fileUrl}`);
 
     return fileUrl;
   }
