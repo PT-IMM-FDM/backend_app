@@ -14,6 +14,7 @@ import {
   UpdateUserResponse,
 } from "./userModel";
 import { password_generator, hashPassword, comparePassword } from "../../utils";
+import { Prisma } from "@prisma/client";
 let formatUserResponseData = {
   user_id: true,
   full_name: true,
@@ -52,6 +53,49 @@ let formatUserResponseData = {
       name: true,
     },
   },
+};
+
+export type UserScope = { departmentName: string } | null;
+
+export const buildUserWhere = (
+  data: GetUserRequest,
+  scope: UserScope
+): Prisma.UserWhereInput => {
+  const excludeDefaultAdmin: Prisma.UserWhereInput = {
+    phone_number: { not: "00000" },
+  };
+
+  if (scope) {
+    return {
+      ...excludeDefaultAdmin,
+      department: { name: scope.departmentName },
+      company: { deleted_at: null },
+      deleted_at: null,
+    };
+  }
+
+  return {
+    ...excludeDefaultAdmin,
+    deleted_at: null,
+    company: {
+      name: { in: data.company_name, mode: Prisma.QueryMode.insensitive },
+      deleted_at: null,
+    },
+    job_position: {
+      name: { in: data.job_position, mode: Prisma.QueryMode.insensitive },
+    },
+    employment_status: {
+      name: { in: data.employment_status, mode: Prisma.QueryMode.insensitive },
+    },
+    department: {
+      name: { in: data.department, mode: Prisma.QueryMode.insensitive },
+    },
+    full_name: data.name
+      ? { contains: data.name, mode: Prisma.QueryMode.insensitive }
+      : undefined,
+    is_active: data.is_active,
+    user_id: data.user_id ? { contains: data.user_id } : undefined,
+  };
 };
 
 export class UserService {
@@ -101,20 +145,12 @@ export class UserService {
     return createUser;
   }
 
-  static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
-    let users;
-    let adminDefault;
-    adminDefault = await prisma.user.findMany({
+  private static async resolveUserScope(
+    adminUserId: string
+  ): Promise<UserScope> {
+    const caller = await prisma.user.findFirst({
       where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
-    });
-    const adminRole = await prisma.user.findFirst({
-      where: {
-        user_id: data.adminUserId,
+        user_id: adminUserId,
       },
       select: {
         role: {
@@ -127,193 +163,33 @@ export class UserService {
             name: true,
           },
         },
-        company: {
-          select: {
-            name: true,
-          },
-        },
       },
     });
 
     if (
-      adminRole &&
-      adminRole.role.name !== "Admin" &&
-      adminRole.role.name !== "Full Viewer"
+      caller &&
+      caller.role.name !== "Admin" &&
+      caller.role.name !== "Full Viewer"
     ) {
-      users = await prisma.user.findMany({
-        where: {
-          department: {
-            name: adminRole.department.name,
-          },
-          company: {
-            deleted_at: null,
-          },
-          deleted_at: null,
-          user_id: { notIn: [adminDefault[0].user_id] }
-        },
-        select: formatUserResponseData,
-      });
-
-      return users;
+      return { departmentName: caller.department.name };
     }
 
-    const CompanyId = await prisma.company.findMany({
-      where: {
-        name: { in: data.company_name, mode: "insensitive" },
-      },
-    });
+    return null;
+  }
 
-    const jobPositionId = await prisma.jobPosition.findMany({
-      where: {
-        name: { in: data.job_position, mode: "insensitive" },
-      },
-    });
-
-    const employmentStatusId = await prisma.employmentStatus.findMany({
-      where: {
-        name: { in: data.employment_status, mode: "insensitive" },
-      },
-    });
-
-    const departmentId = await prisma.department.findMany({
-      where: {
-        name: { in: data.department, mode: "insensitive" },
-      },
-    });
-
-    users = await prisma.user.findMany({
-      where: {
-        company: {
-          company_id: { in: CompanyId.map((item) => item.company_id) },
-          deleted_at: null,
-        },
-        job_position_id: {
-          in: jobPositionId.map((item) => item.job_position_id),
-        },
-        employment_status_id: {
-          in: employmentStatusId.map((item) => item.employment_status_id),
-        },
-        department_id: { in: departmentId.map((item) => item.department_id) },
-        full_name: data.name
-          ? {
-              contains: data.name,
-              mode: "insensitive",
-            }
-          : undefined,
-        is_active: data.is_active,
-        user_id: { notIn: [adminDefault[0].user_id], contains: data.user_id },
-        deleted_at: null,
-      },
+  static async getUsers(data: GetUserRequest): Promise<GetUserResponse[]> {
+    const scope = await this.resolveUserScope(data.adminUserId);
+    return prisma.user.findMany({
+      where: buildUserWhere(data, scope),
       select: formatUserResponseData,
     });
-    return users;
   }
 
   static async getTotalUsers(data: GetUserRequest): Promise<number> {
-    let users;
-    let adminDefault;
-    adminDefault = await prisma.user.findMany({
-      where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
+    const scope = await this.resolveUserScope(data.adminUserId);
+    return prisma.user.count({
+      where: buildUserWhere(data, scope),
     });
-    const adminRole = await prisma.user.findFirst({
-      where: {
-        user_id: data.adminUserId,
-      },
-      select: {
-        role: {
-          select: {
-            name: true,
-          },
-        },
-        department: {
-          select: {
-            name: true,
-          },
-        },
-        company: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    if (
-      adminRole &&
-      adminRole.role.name !== "Admin" &&
-      adminRole.role.name !== "Full Viewer"
-    ) {
-      users = await prisma.user.count({
-        where: {
-          department: {
-            name: adminRole.department.name,
-          },
-          company: {
-            deleted_at: null,
-          },
-          deleted_at: null,
-          user_id: { notIn: [adminDefault[0].user_id] }
-        },
-      });
-
-      return users;
-    }
-
-    const CompanyId = await prisma.company.findMany({
-      where: {
-        name: { in: data.company_name, mode: "insensitive" },
-      },
-    });
-
-    const jobPositionId = await prisma.jobPosition.findMany({
-      where: {
-        name: { in: data.job_position, mode: "insensitive" },
-      },
-    });
-
-    const employmentStatusId = await prisma.employmentStatus.findMany({
-      where: {
-        name: { in: data.employment_status, mode: "insensitive" },
-      },
-    });
-
-    const departmentId = await prisma.department.findMany({
-      where: {
-        name: { in: data.department, mode: "insensitive" },
-      },
-    });
-
-    users = await prisma.user.count({
-      where: {
-        company: {
-          company_id: { in: CompanyId.map((item) => item.company_id) },
-          deleted_at: null,
-        },
-        job_position_id: {
-          in: jobPositionId.map((item) => item.job_position_id),
-        },
-        employment_status_id: {
-          in: employmentStatusId.map((item) => item.employment_status_id),
-        },
-        department_id: { in: departmentId.map((item) => item.department_id
-        ) },
-        full_name: data.name
-          ? {
-              contains: data.name,
-              mode: "insensitive",
-            }
-          : undefined,
-        is_active: data.is_active,
-        user_id: { notIn: [adminDefault[0].user_id], contains: data.user_id },
-        deleted_at: null,
-      },
-    });
-    return users;
   }
 
   static async updateUser(
