@@ -60,22 +60,9 @@ export class CompanyService {
       ? validateData.company_id
       : [validateData.company_id];
 
-    if (arrayCompanys.length) {
-      await prisma.$transaction(async (prisma) => {
-        for (const CompanyId of arrayCompanys) {
-          const Company = await prisma.company.findUnique({
-            where: { company_id: CompanyId },
-            select: { deleted_at: true },
-          });
-
-          if (Company && Company.deleted_at === null) {
-            await prisma.company.update({
-              where: { company_id: CompanyId },
-              data: { deleted_at: new Date() },
-            });
-          }
-        }
-      });
-    }
+    await prisma.company.updateMany({
+      where: { company_id: { in: arrayCompanys }, deleted_at: null },
+      data: { deleted_at: new Date() },
+    });
   }
 }

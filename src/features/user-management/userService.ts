@@ -402,23 +402,10 @@ export class UserService {
       ? validateData.user_id
       : [validateData.user_id];
 
-    if (arrayUsers.length) {
-      await prisma.$transaction(async (prisma) => {
-        for (const userId of arrayUsers) {
-          const user = await prisma.user.findUnique({
-            where: { user_id: userId },
-            select: { deleted_at: true },
-          });
-
-          if (user && user.deleted_at === null) {
-            await prisma.user.update({
-              where: { user_id: userId },
-              data: { deleted_at: new Date() },
-            });
-          }
-        }
-      });
-    }
+    await prisma.user.updateMany({
+      where: { user_id: { in: arrayUsers }, deleted_at: null },
+      data: { deleted_at: new Date() },
+    });
   }
 
   static async updatePassword(data: UpdatePassword) {

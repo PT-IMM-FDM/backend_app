@@ -22,6 +22,68 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
   UNFIT: "UNFIT",
 };
 
+export type ImportLookups = {
+  company: Map<string, number>;
+  jobPosition: Map<string, number>;
+  employmentStatus: Map<string, number>;
+  department: Map<string, number>;
+};
+
+export type ImportRowPlan =
+  | { action: "stop" }
+  | { action: "skip" }
+  | { action: "invalid"; missing: string[] }
+  | {
+      action: "create";
+      full_name: string;
+      phone_number: string;
+      birth_date: Date;
+      company_id: number;
+      job_position_id: number;
+      employment_status_id: number;
+      department_id: number;
+    };
+
+/**
+ * Decide what to do with one spreadsheet row. Pure — no DB, no I/O.
+ * Exported so documentService.check.ts can exercise it without a database.
+ */
+export const planImportRow = (
+  row: { [key: number]: any } | undefined,
+  lookups: ImportLookups,
+  takenPhoneNumbers: Set<string>
+): ImportRowPlan => {
+  if (!row || row[1] === undefined) return { action: "stop" };
+
+  const phone_number = row[2] as string;
+  if (takenPhoneNumbers.has(phone_number)) return { action: "skip" };
+
+  const company_id = lookups.company.get(row[4]);
+  const job_position_id = lookups.jobPosition.get(row[5]);
+  const employment_status_id = lookups.employmentStatus.get(row[6]);
+  const department_id = lookups.department.get(row[7]);
+
+  const missing = [
+    company_id === undefined && `Company "${row[4]}"`,
+    job_position_id === undefined && `Job Position "${row[5]}"`,
+    employment_status_id === undefined && `Employment Status "${row[6]}"`,
+    department_id === undefined && `Department "${row[7]}"`,
+  ].filter(Boolean) as string[];
+
+  if (missing.length) return { action: "invalid", missing };
+
+  return {
+    action: "create",
+    full_name: row[1] as string,
+    phone_number,
+    birth_date: new Date(row[3] + "GMT-0000"),
+    company_id: company_id!,
+    job_position_id: job_position_id!,
+    employment_status_id: employment_status_id!,
+    department_id: department_id!,
+  };
+};
+
 const publicDir = path.resolve(__dirname, "../../../public");
 
 // Check if directory exists and create it if not
@@ -173,88 +235,72 @@ export class DocumentService {
       );
     }
 
-    const role = await prisma.role.findFirst({
-      where: {
-        name: "User",
-      },
-    });
+    const [role, companies, jobPositions, employmentStatuses, departments, existingUsers] =
+      await Promise.all([
+        prisma.role.findFirst({ where: { name: "User" } }),
+        prisma.company.findMany({ select: { company_id: true, name: true } }),
+        prisma.jobPosition.findMany({ select: { job_position_id: true, name: true } }),
+        prisma.employmentStatus.findMany({
+          select: { employment_status_id: true, name: true },
+        }),
+        prisma.department.findMany({ select: { department_id: true, name: true } }),
+        prisma.user.findMany({
+          where: { deleted_at: null },
+          select: { phone_number: true },
+        }),
+      ]);
+
+    const indexByName = <T extends { name: string }, K extends keyof T>(
+      rows: T[],
+      idKey: K
+    ) => new Map(rows.map((row) => [row.name, row[idKey]]));
+
+    const lookups: ImportLookups = {
+      company: indexByName(companies, "company_id"),
+      jobPosition: indexByName(jobPositions, "job_position_id"),
+      employmentStatus: indexByName(employmentStatuses, "employment_status_id"),
+      department: indexByName(departments, "department_id"),
+    };
+
+    const takenPhoneNumbers = new Set(existingUsers.map((u) => u.phone_number));
+
     const usersData = usersWorksheet.getSheetValues();
+    const usersToCreate = [];
 
     for (let i = 3; i < usersData.length; i++) {
-      const user = usersData[i] as { [key: number]: any };
-      if (user[1] === undefined) {
-        break;
+      const plan = planImportRow(
+        usersData[i] as { [key: number]: any } | undefined,
+        lookups,
+        takenPhoneNumbers
+      );
+
+      if (plan.action === "stop") break;
+      if (plan.action === "skip") continue;
+      if (plan.action === "invalid") {
+        throw new ErrorResponse(
+          `Row ${i}: unknown ${plan.missing.join(", ")}`,
+          400,
+          ["Invalid master data"],
+          "UNKNOWN_MASTER_DATA"
+        );
       }
-      await prisma.$transaction(async (prisma) => {
-        const userBirthDate = new Date(user[3] + "GMT-0000");
-        const company = await prisma.company.findFirst({
-          where: {
-            name: user[4],
-          },
-        });
 
-        const jobPosition = await prisma.jobPosition.findFirst({
-          where: {
-            name: user[5],
-          },
-        });
-
-        const employmentStatus = await prisma.employmentStatus.findFirst({
-          where: {
-            name: user[6],
-          },
-        });
-
-        const department = await prisma.department.findFirst({
-          where: {
-            name: user[7],
-          },
-        });
-
-        const findUser = await prisma.user.findFirst({
-          where: {
-            phone_number: user[2],
-            deleted_at: null,
-          },
-        });
-
-        if (!findUser) {
-          // throw new ErrorResponse(
-          //   "There Are User Phone number already exists or account has been created",
-          //   400,
-          //   ["phone_number"],
-          //   "PHONE_NUMBER_ALREADY_EXISTS"
-          // );
-          const passwordDefault = await password_generator(
-            user[1] as string,
-            userBirthDate
-          );
-
-          const hashedPassword = await hashPassword(passwordDefault);
-          const userData = {
-            full_name: user[1] as string,
-            phone_number: user[2] as string,
-            birth_date: userBirthDate,
-            password: hashedPassword,
-            company_id: company?.company_id as number,
-            job_position_id: jobPosition?.job_position_id as number,
-            employment_status_id:
-              employmentStatus?.employment_status_id as number,
-            department_id: department?.department_id as number,
-            role_id: role?.role_id as number,
-          };
-
-          await prisma.user.create({
-            data: userData,
-          });
-        }
+      const { action, ...userData } = plan;
+      usersToCreate.push({
+        ...userData,
+        password: await hashPassword(
+          password_generator(plan.full_name, plan.birth_date)
+        ),
+        role_id: role?.role_id as number,
       });
-      // Remove the file after the data is imported
-      fs.rmSync("./public/uploads/users_file/", {
-        recursive: true,
-        force: true,
-      });
+      takenPhoneNumbers.add(plan.phone_number);
     }
+
+    if (usersToCreate.length) {
+      await prisma.user.createMany({ data: usersToCreate });
+    }
+
+    fs.rmSync(data.file_of_users.path, { force: true });
 
     return "Users imported successfully";
   }

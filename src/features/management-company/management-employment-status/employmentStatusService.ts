@@ -59,22 +59,12 @@ export class EmploymentStatusService {
       ? validateData.employment_status_id
       : [validateData.employment_status_id];
 
-    if (arrayEmploymentStatuses.length) {
-      await prisma.$transaction(async (prisma) => {
-        for (const EmploymentStatusId of arrayEmploymentStatuses) {
-          const employmentStatus = await prisma.employmentStatus.findUnique({
-            where: { employment_status_id: EmploymentStatusId },
-            select: { deleted_at: true },
-          });
-
-          if (employmentStatus && employmentStatus.deleted_at === null) {
-            await prisma.employmentStatus.update({
-              where: { employment_status_id: EmploymentStatusId },
-              data: { deleted_at: new Date() },
-            });
-          }
-        }
-      });
-    }
+    await prisma.employmentStatus.updateMany({
+      where: {
+        employment_status_id: { in: arrayEmploymentStatuses },
+        deleted_at: null,
+      },
+      data: { deleted_at: new Date() },
+    });
   }
 }

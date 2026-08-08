@@ -58,22 +58,10 @@ export class JobPositionService {
     const arrayJobPositions = Array.isArray(validateData.job_position_id)
       ? validateData.job_position_id
       : [validateData.job_position_id];
-    if (arrayJobPositions.length) {
-      await prisma.$transaction(async (prisma) => {
-        for (const jobPositionId of arrayJobPositions) {
-          const job_position = await prisma.jobPosition.findUnique({
-            where: { job_position_id: jobPositionId },
-            select: { deleted_at: true },
-          });
 
-          if (job_position && job_position.deleted_at === null) {
-            await prisma.jobPosition.update({
-              where: { job_position_id: jobPositionId },
-              data: { deleted_at: new Date() },
-            });
-          }
-        }
-      });
-    }
+    await prisma.jobPosition.updateMany({
+      where: { job_position_id: { in: arrayJobPositions }, deleted_at: null },
+      data: { deleted_at: new Date() },
+    });
   }
 }

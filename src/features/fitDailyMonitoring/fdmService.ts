@@ -246,29 +246,21 @@ export class FdmService {
       lte: validateData.endDate,
     };
 
-    const resultFit = await prisma.attendanceHealthResult.count({
+    const grouped = await prisma.attendanceHealthResult.groupBy({
+      by: ["result"],
       where: {
-        result: "FIT",
         created_at: time_where_clause,
         user: user_where_clause,
       },
+      _count: { _all: true },
     });
 
-    const resultFitFollowUp = await prisma.attendanceHealthResult.count({
-      where: {
-        result: "FIT_FOLLOW_UP",
-        created_at: time_where_clause,
-        user: user_where_clause,
-      },
-    });
+    const countOf = (result: ResultEnum) =>
+      grouped.find((row) => row.result === result)?._count._all ?? 0;
 
-    const resultUnfit = await prisma.attendanceHealthResult.count({
-      where: {
-        result: "UNFIT",
-        created_at: time_where_clause,
-        user: user_where_clause,
-      },
-    });
+    const resultFit = countOf("FIT");
+    const resultFitFollowUp = countOf("FIT_FOLLOW_UP");
+    const resultUnfit = countOf("UNFIT");
 
     const resultTotal = resultFit + resultFitFollowUp + resultUnfit;
 

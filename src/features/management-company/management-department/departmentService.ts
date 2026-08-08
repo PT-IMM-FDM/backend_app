@@ -59,22 +59,9 @@ export class DepartmentService {
       ? validateData.department_id
       : [validateData.department_id];
 
-    if (arrayDepartments.length) {
-      await prisma.$transaction(async (prisma) => {
-        for (const DepartmentId of arrayDepartments) {
-          const Department = await prisma.department.findUnique({
-            where: { department_id: DepartmentId },
-            select: { deleted_at: true },
-          });
-
-          if (Department && Department.deleted_at === null) {
-            await prisma.department.update({
-              where: { department_id: DepartmentId },
-              data: { deleted_at: new Date() },
-            });
-          }
-        }
-      });
-    }
+    await prisma.department.updateMany({
+      where: { department_id: { in: arrayDepartments }, deleted_at: null },
+      data: { deleted_at: new Date() },
+    });
   }
 }
