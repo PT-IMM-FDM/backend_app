@@ -84,6 +84,63 @@ export const planImportRow = (
   };
 };
 
+/**
+ * WITA (UTC+8). Kept so exported times do not shift; the real fix is setting
+ * TZ on the process rather than adding an offset at the edge.
+ */
+export const WITA_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+export type FdmExportRecord = {
+  created_at: Date;
+  result: string;
+  user: {
+    full_name: string;
+    phone_number: string;
+    birth_date: Date;
+    company: { name: string };
+    job_position: { name: string };
+    employment_status: { name: string };
+    department: { name: string };
+  };
+  response_user: {
+    question_id: number;
+    question_answer: { question_answer: string };
+  }[];
+};
+
+/**
+ * Flatten one attendance record into a spreadsheet row. Pure — no DB, no I/O.
+ * Exported so documentService.check.ts can exercise it without a database.
+ *
+ * The answers come from the record's own response_user, so each exported row
+ * shows the answers given on that date.
+ */
+export const buildFdmExportRow = (
+  record: FdmExportRecord,
+  allQuestions: { question_id: number }[]
+): { [key: string]: any } => {
+  const row: { [key: string]: any } = {
+    date: new Date(record.created_at.getTime() + WITA_OFFSET_MS),
+    result: record.result,
+    full_name: record.user.full_name,
+    phone_number: record.user.phone_number,
+    birth_date: record.user.birth_date,
+    company: record.user.company.name,
+    job_position: record.user.job_position.name,
+    employment_status: record.user.employment_status.name,
+    department: record.user.department.name,
+  };
+
+  for (const question of allQuestions) {
+    row[`question_${question.question_id}`] = "";
+  }
+  for (const answer of record.response_user) {
+    row[`question_${answer.question_id}`] = answer.question_answer.question_answer;
+  }
+
+  return row;
+};
+
 const publicDir = path.resolve(__dirname, "../../../public");
 
 // Check if directory exists and create it if not
@@ -425,11 +482,6 @@ export class DocumentService {
 
   static async exportDataFdm(data: ExportDataFdmRequest) {
     let resultValue;
-    let adminDefault = await prisma.user.findMany({
-      where: { phone_number: "00000" },
-      select: { user_id: true },
-    });
-
     if (data.result) {
       resultValue = resultEnumMapping[data.result as ResultKey];
     }
@@ -442,18 +494,37 @@ export class DocumentService {
     const allQuestions = await prisma.question.findMany({
       where: { deleted_at: null },
       select: { question_id: true, question: true },
-      orderBy: { question_id: 'asc' }
+      orderBy: { question_id: "asc" },
     });
 
-    const batchSize = 2000; // Increased from 1000
-    let skip = 0;
-    let hasMoreData = true;
+    const now = new Date();
+    const dateStr = now
+      .toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "-");
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("FDM");
+    const timeStr = now
+      .toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+      .replace(/:/g, "-");
+
+    const filename = `Export_Data_FDM_${dateStr}_${timeStr}.xlsx`;
+    const filePath1 = path.join("./public", filename);
 
     const userColumns: Partial<ExcelJS.Column>[] = [
-      { header: "Date", key: "date", width: 20 },
+      {
+        header: "Date",
+        key: "date",
+        width: 20,
+        // Set here, not after the rows: a streamed sheet is already flushed by then.
+        style: { numFmt: "yyyy-mm-dd hh:mm:ss" },
+      },
       { header: "Result", key: "result", width: 15 },
       { header: "Full Name", key: "full_name", width: 25 },
       { header: "Phone Number", key: "phone_number", width: 15 },
@@ -464,43 +535,62 @@ export class DocumentService {
       { header: "Department", key: "department", width: 30 },
     ];
 
-    const questionColumns: Partial<ExcelJS.Column>[] = allQuestions.map((question) => ({
-      header: question.question,
-      key: `question_${question.question_id}`,
-      width: 20,
-    }));
+    const questionColumns: Partial<ExcelJS.Column>[] = allQuestions.map(
+      (question) => ({
+        header: question.question,
+        key: `question_${question.question_id}`,
+        width: 20,
+      })
+    );
 
+    // Stream rows straight to disk. The old code held every row of the range
+    // in memory until the very end, which is what made a wide date range blow up.
+    const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+      filename: filePath1,
+      useStyles: true,
+    });
+    const worksheet = workbook.addWorksheet("FDM");
     worksheet.columns = [...userColumns, ...questionColumns];
-    console.log(`Found ${allQuestions.length} questions from database`);
 
-    while (hasMoreData) {
-      const startTime = Date.now();
-      console.log(`Fetching batch: ${skip} to ${skip + batchSize}`);
+    const where = {
+      created_at: {
+        gte: validateData.customDateFrom,
+        lte: validateData.customDateTo,
+      },
+      result: resultValue,
+      user: {
+        user_id: {
+          in: validateData.user_id ? [...validateData.user_id] : undefined,
+        },
+        // The seeded default admin is never exported.
+        phone_number: { not: "00000" },
+        job_position: { name: { in: validateData.job_position_name } },
+        department: { name: { in: validateData.department_name } },
+        company: { name: { in: validateData.company_name } },
+        employment_status: {
+          name: { in: validateData.employment_status_name },
+        },
+        deleted_at: null,
+      },
+    };
 
+    const batchSize = 2000;
+    let cursor: number | undefined;
+    let exported = 0;
+
+    for (;;) {
       const fdm = await prisma.attendanceHealthResult.findMany({
         take: batchSize,
-        skip: skip,
-        where: {
-          created_at: {
-            gte: validateData.customDateFrom,
-            lte: validateData.customDateTo,
-          },
-          result: resultValue,
-          user: {
-            user_id: {
-              in: validateData.user_id ? [...validateData.user_id] : undefined,
-              notIn: adminDefault.map((admin) => admin.user_id),
-            },
-            job_position: { name: { in: validateData.job_position_name } },
-            department: { name: { in: validateData.department_name } },
-            company: { name: { in: validateData.company_name } },
-            employment_status: {
-              name: { in: validateData.employment_status_name },
-            },
-            deleted_at: null,
-          },
-        },
-        include: {
+        // Cursor, not skip: OFFSET makes Postgres re-scan and discard every
+        // earlier row on each batch, so a long range degrades quadratically.
+        ...(cursor !== undefined
+          ? { cursor: { attendance_health_result_id: cursor }, skip: 1 }
+          : {}),
+        where,
+        select: {
+          attendance_health_result_id: true,
+          created_at: true,
+          result: true,
           user: {
             select: {
               full_name: true,
@@ -510,83 +600,38 @@ export class DocumentService {
               department: { select: { name: true } },
               company: { select: { name: true } },
               employment_status: { select: { name: true } },
-              ResponseUser: {
-                select: {
-                  question: { select: { question_id: true, question: true } },
-                  question_answer: { select: { question_answer: true } },
-                },
-              },
+            },
+          },
+          // Answers belonging to THIS attendance record. Reading them off the
+          // user relation instead pulled that user's entire answer history for
+          // every exported row, and last-write-wins made every row show the
+          // same answers.
+          response_user: {
+            select: {
+              question_id: true,
+              question_answer: { select: { question_answer: true } },
             },
           },
         },
-        orderBy: { created_at: 'asc' },
+        orderBy: { attendance_health_result_id: "asc" },
       });
 
-      if (fdm.length === 0) {
-        hasMoreData = false;
-        break;
+      if (fdm.length === 0) break;
+
+      for (const record of fdm) {
+        worksheet.addRow(buildFdmExportRow(record, allQuestions)).commit();
       }
 
-      // Optimasi: Bulk add rows instead of individual addRow
-      const rows = fdm.map((data) => {
-        data.created_at.setHours(data.created_at.getHours() + 8);
-        const row: { [key: string]: any } = {
-          date: data.created_at,
-          result: data.result,
-          full_name: data.user.full_name,
-          phone_number: data.user.phone_number,
-          birth_date: data.user.birth_date,
-          company: data.user.company.name,
-          job_position: data.user.job_position.name,
-          employment_status: data.user.employment_status.name,
-          department: data.user.department.name,
-        };
-
-        // Initialize all question columns
-        allQuestions.forEach(question => {
-          row[`question_${question.question_id}`] = '';
-        });
-
-        // Fill answers
-        data.user.ResponseUser.forEach((response) => {
-          if (response.question && response.question.question_id) {
-            const questionKey = `question_${response.question.question_id}`;
-            row[questionKey] = response.question_answer.question_answer;
-          }
-        });
-
-        return row;
-      });
-
-      // Bulk add rows - much faster than individual addRow
-      worksheet.addRows(rows);
-
-      skip += batchSize;
-      const batchTime = Date.now() - startTime;
-      console.log(`Batch processed in ${batchTime}ms`);
+      exported += fdm.length;
+      cursor = fdm[fdm.length - 1].attendance_health_result_id;
+      if (fdm.length < batchSize) break;
     }
 
-    worksheet.getColumn("date").numFmt = "yyyy-mm-dd hh:mm:ss";
-
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric'
-    }).replace(/\//g, '-');
-
-    const timeStr = now.toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(/:/g, '-');
-
-    const filename = `Export_Data_FDM_${dateStr}_${timeStr}.xlsx`;
-    const filePath1 = path.join("./public", filename);
-    await workbook.xlsx.writeFile(filePath1);
+    await worksheet.commit();
+    await workbook.commit();
 
     const fileUrl = `${process.env.API_URL || "http://localhost:3030"}/public/${filename}`;
-    logger.info(`File has been created: ${fileUrl}`);
+    logger.info(`FDM export created: ${fileUrl} (${exported} rows)`);
 
     return fileUrl;
   }
