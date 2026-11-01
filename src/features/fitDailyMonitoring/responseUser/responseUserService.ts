@@ -23,6 +23,78 @@ const recomendationUnfit = `
 •	Tetap Jaga Kesehatan Fisik, Pikiran Dan Perasaan Anda Serta Utamakan Tidur yang Cukup
 `
 
+type NotifyUser = {
+  full_name: string;
+  phone_number: string;
+  department: { name: string };
+  job_position: { name: string };
+};
+
+// Kirim WA ke Occupational Health + department user tsb bila ada jawaban UNFIT.
+// Dipanggil di luar transaction (fire-and-forget).
+const notifyFdmUnfit = async (user: NotifyUser, userId: string) => {
+  // Jawaban bernilai 3 (gejala UNFIT) milik user hari ini, jadi deskripsi WA
+  const unfitResponsesToday = await prisma.responseUser.findMany({
+    where: {
+      user_id: userId,
+      question_answer: { value: 3 },
+      created_at: {
+        gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        lte: new Date(new Date().setHours(23, 59, 59, 999)),
+      },
+    },
+    include: {
+      question: true,
+      question_answer: true,
+    },
+  });
+
+  const descriptionString = unfitResponsesToday
+    .map(
+      (response) =>
+        `${response.question.question} - ${response.question_answer.question_answer}`
+    )
+    .join("\n");
+
+  const phoneNumberOfOH = await prisma.user.findMany({
+    where: {
+      get_notification: true,
+      department: {
+        name: "Occupational Health",
+      },
+    },
+    select: {
+      phone_number: true,
+    },
+  });
+
+  const phoneNumberOfDepartmentHead = await prisma.user.findMany({
+    where: {
+      get_notification: true,
+      department: {
+        name: user.department.name,
+      },
+    },
+    select: {
+      phone_number: true,
+    },
+  });
+
+  const phoneNumberToNotify = [
+    ...phoneNumberOfOH.map((i) => i.phone_number),
+    ...phoneNumberOfDepartmentHead.map((i) => i.phone_number),
+  ];
+  for (const phoneNumberWhatsapp of phoneNumberToNotify) {
+    await sendMessageFdmUnfit(phoneNumberWhatsapp, {
+      full_name: user.full_name,
+      phone_number: user.phone_number,
+      job_position: user.job_position.name,
+      department: user.department.name,
+      description: descriptionString,
+    });
+  }
+};
+
 export class ResponseUserService {
   static async createResponseUser(data: CreateResponseUserRequest) {
     const validateData = Validation.validate(
@@ -33,6 +105,21 @@ export class ResponseUserService {
     const user = await prisma.user.findUnique({
       where: {
         user_id: validateData.user_id,
+      },
+      select: {
+        user_id: true,
+        full_name: true,
+        phone_number: true,
+        department: {
+          select: {
+            name: true,
+          },
+        },
+        job_position: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -72,8 +159,11 @@ export class ResponseUserService {
       recomendation = recomendationFitFollowUp;
     }
 
-    await prisma.$transaction(async (prisma) => {
-      await prisma.attendanceHealthResult.create({
+    // Transaction cuma untuk tulis data. Notifikasi WA + query pendukung
+    // dijalankan setelah commit (fire-and-forget) supaya koneksi pool dan
+    // transaction tidak ditahan selama puppeteer/WA mengirim pesan.
+    await prisma.$transaction(async (tx) => {
+      await tx.attendanceHealthResult.create({
         data: {
           user_id: validateData.user_id,
           attendance_status: validateData.attendance_status,
@@ -94,90 +184,14 @@ export class ResponseUserService {
           },
         },
       });
-
-      const user = await prisma.user.findUnique({
-        where: {
-          user_id: validateData.user_id,
-        },
-        select: {
-          full_name: true,
-          phone_number: true,
-          department: {
-            select: {
-              name: true,
-            },
-          },
-          job_position: {
-            select: {
-              name: true,
-            },
-          },
-          ResponseUser: {
-            where: {
-              created_at: {
-                gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                lte: new Date(new Date().setHours(23, 59, 59, 999)),
-              },
-              question_answer: {
-                value: 3,
-              },
-            },
-            include: {
-              question: true,
-              question_answer: true,
-            },
-          },
-        },
-      });
-
-      if (user && result === "UNFIT") {
-        const descriptions = user.ResponseUser.map((response) => {
-          const question = response.question.question;
-          const answer = response.question_answer.question_answer;
-          return `${question} - ${answer}`;
-        });
-
-        const descriptionString = descriptions.join("\n");
-
-        const phoneNumberOfOH = await prisma.user.findMany({
-          where: {
-            get_notification: true,
-            department: {
-              name: "Occupational Health",
-            },
-          },
-          select: {
-            phone_number: true,
-          },
-        });
-
-        const phoneNumberOfDepartmentHead = await prisma.user.findMany({
-          where: {
-            get_notification: true,
-            department: {
-              name: user.department.name,
-            },
-          },
-          select: {
-            phone_number: true,
-          },
-        });
-
-        const phoneNumberToNotify = [
-          ...phoneNumberOfOH.map((i) => i.phone_number),
-          ...phoneNumberOfDepartmentHead.map((i) => i.phone_number),
-        ];
-        for (let phoneNumberWhatsapp of phoneNumberToNotify) {
-          sendMessageFdmUnfit(phoneNumberWhatsapp, {
-            full_name: user.full_name,
-            phone_number: user.phone_number,
-            job_position: user.job_position.name,
-            department: user.department.name,
-            description: descriptionString,
-          });
-        }
-      }
     });
+
+    if (result === "UNFIT" && user) {
+      void notifyFdmUnfit(user, validateData.user_id).catch((err) =>
+        console.error("Failed to send FDM unfit notification:", err)
+      );
+    }
+
     return { result, recomendation };
   }
 

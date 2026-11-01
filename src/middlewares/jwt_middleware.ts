@@ -4,6 +4,28 @@ import jwt from "jsonwebtoken";
 import { UserToken } from "../models/token_model";
 import { prisma } from "../applications";
 
+const ROLE_TTL_MS = 60_000;
+// Cache role per user supaya middleware tidak query DB di setiap request.
+// TTL pendek (60s) agar perubahan role tetap tertangkap cepat.
+const roleCache = new Map<string, { role: string; expires: number }>();
+
+const getCachedRole = async (user_id: string): Promise<string | undefined> => {
+  const hit = roleCache.get(user_id);
+  if (hit && hit.expires > Date.now()) {
+    return hit.role;
+  }
+  const userData = await prisma.user.findFirst({
+    where: { user_id },
+    select: { role: { select: { name: true } } },
+  });
+  if (!userData) return undefined;
+  roleCache.set(user_id, {
+    role: userData.role.name,
+    expires: Date.now() + ROLE_TTL_MS,
+  });
+  return userData.role.name;
+};
+
 export class JwtMiddleware {
   static async verifyToken(req: Request, res: Response, next: NextFunction) {
     try {
@@ -24,20 +46,9 @@ export class JwtMiddleware {
       const { user_id } = res.locals.user as UserToken;
 
       if (user_id) {
-        const userData = await prisma.user.findFirst({
-          where: {
-            user_id,
-          },
-          select: {
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
+        const roleName = await getCachedRole(user_id);
 
-        if (userData && userData.role.name !== "Admin") {
+        if (roleName && roleName !== "Admin") {
           throw new ErrorResponse(
             "Only be accessed by Admin.",
             403,
@@ -57,23 +68,13 @@ export class JwtMiddleware {
       const { user_id } = res.locals.user as UserToken;
 
       if (user_id) {
-        const userData = await prisma.user.findFirst({
-          where: {
-            user_id,
-          },
-          select: {
-            role: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        });
+        const roleName = await getCachedRole(user_id);
 
         if (
-          (userData && userData.role.name !== "Admin") &&
-          (userData && userData.role.name !== "Viewer") &&
-          (userData && userData.role.name !== "Full Viewer")
+          roleName &&
+          roleName !== "Admin" &&
+          roleName !== "Viewer" &&
+          roleName !== "Full Viewer"
         ) {
           throw new ErrorResponse(
             "Only be accessed by Admin or Viewer.",

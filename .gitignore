@@ -4,4 +4,8 @@ public
 pnpm-lock.yaml
 yarn.lock
 *.log
-.wwebjs_auth
+.wwebjs_auth.DS_Store
+.docker-data/
+prisma/.DS_Store
+error.log
+combined.log

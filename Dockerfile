@@ -1,52 +1,37 @@
-# Use Node as base
-FROM node:18 AS base
+FROM node:18-alpine AS build
 
-# Install necessary dependencies for Puppeteer
-RUN apt-get update && apt-get install -y \
-    libnss3 \
-    libatk-bridge2.0-0 \
-    libx11-xcb1 \
-    libxcb-dri3-0 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxrandr2 \
-    libgbm-dev \
-    libpango-1.0-0 \
-    libcups2 \
-    libxss1 \
-    libxtst6 \
-    libasound2 \
-    libatk1.0-0 \
-    libx11-6 \
-    libxext6 \
-    libxft2 \
-    fonts-liberation \
-    libappindicator3-1 \
-    libnss3 \
-    lsb-release \
-    xdg-utils \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache python3 make g++
 
-# Set the working directory
-WORKDIR /
-
-# Copy package.json and install dependencies
+WORKDIR /app
 COPY package*.json ./
 
-RUN npm install
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm ci --no-audit --no-fund
 
-# Copy the rest of the application
 COPY . .
+RUN npx prisma generate \
+    && npm run build \
+    && npx tsc prisma/seed/index.ts \
+        --outDir build-seed \
+        --target es2016 \
+        --module commonjs \
+        --esModuleInterop \
+        --skipLibCheck
 
-# Run Prisma migration and seed commands (optional)
-RUN npx prisma generate
-RUN npx prisma db push --force-reset
+FROM node:18-alpine AS base
 
-# Build TypeScript
-RUN npm run build
-RUN npm run seed
+RUN apk add --no-cache chromium openssl
 
-# Run the application
-CMD ["sh", "-c", "node build/index.js"]
+WORKDIR /app
+ENV NODE_ENV=production \
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/build ./build
+COPY --from=build /app/build-seed ./build-seed
+COPY --from=build /app/prisma ./prisma
+
+EXPOSE 3030
+CMD ["node", "build/index.js"]

@@ -1,19 +1,45 @@
-version: '3.7'
-
 services:
+  fdm-db:
+    image: postgres:16-alpine
+    container_name: fdm-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: imm
+    volumes:
+      - fdm-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d imm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   fdm-backend-service:
     build:
       context: .
       dockerfile: Dockerfile
       target: base
+    depends_on:
+      fdm-db:
+        condition: service_healthy
     volumes:
-      - ./src:/home/node/app/src
-      - ./.docker-data:/app # menyimpan init.lock di luar container
+      - ./.docker-data:/app/.docker-data
     container_name: fdm-backend-service
     expose:
-      - '3030'
+      - "3030"
     ports:
-      - '3030:3030'
-    env_file:
-      - .env.dev  
-    command: sh -c "[ ! -f /app/.docker-data/init.lock ] && npx prisma db push && npx prisma db seed && touch /app/.docker-data/init.lock || node build/index.js"
+      - "3030:3030"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@fdm-db:5432/imm?schema=public
+      PORT: "3030"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    command: >-
+      sh -c "if [ ! -f /app/.docker-data/init.lock ]; then
+      npx prisma db push && node ./build-seed/prisma/seed/index.js && touch /app/.docker-data/init.lock;
+      fi; node build/index.js"
+
+volumes:
+  fdm-postgres-data:

@@ -11,30 +11,42 @@ import {
   DeleteQuestionResponse,
 } from "./questionModel";
 
+const FORM_TTL_MS = 60_000;
+// Form question jarang berubah tapi diakses setiap user setiap hari.
+// Cache in-memory 60 detik, di-invalidate saat create/update/delete.
+let formCache: { data: GetQuestionResponse; expires: number } | null = null;
+
+const invalidateFormCache = () => {
+  formCache = null;
+};
+
 export class QuestionService {
   static async createQuestion(data: CreateQuestionRequest) {
     const validateData = Validation.validate(
       QuestionValidation.CREATE_QUESTION,
       data
     );
-    await prisma.$transaction(async (prisma) => {
-      const createQuestion = await prisma.question.create({
-        data: {
-          question: validateData.question,
-          question_answer: {
-            createMany: {
-              data: validateData.question_answer.map((answer, index) => ({
-                question_answer: answer,
-                value: validateData.value[index],
-              })),
-            },
+    await prisma.question.create({
+      data: {
+        question: validateData.question,
+        question_answer: {
+          createMany: {
+            data: validateData.question_answer.map((answer, index) => ({
+              question_answer: answer,
+              value: validateData.value[index],
+            })),
           },
         },
-      });
+      },
     });
+    invalidateFormCache();
   }
 
   static async getQuestions(): Promise<GetQuestionResponse> {
+    if (formCache && formCache.expires > Date.now()) {
+      return formCache.data;
+    }
+
     const questions = await prisma.question.findMany({
       where: {
         deleted_at: null,
@@ -56,32 +68,14 @@ export class QuestionService {
         "QUESTIONS_NOT_FOUND"
       );
     }
+
+    formCache = { data: questions, expires: Date.now() + FORM_TTL_MS };
     return questions;
   }
 
   static async getForm(user_id: string) {
-    const questions = await prisma.question.findMany({
-      where: {
-        deleted_at: null,
-      },
-      include: {
-        question_answer: {
-          where: {
-            deleted_at: null,
-          },
-        },
-      },
-    });
-
-    if (!questions) {
-      throw new ErrorResponse(
-        "Questions not found",
-        404,
-        [],
-        "QUESTIONS_NOT_FOUND"
-      );
-    }
-    return questions;
+    // Query identik dengan getQuestions, pakai cache yang sama
+    return QuestionService.getQuestions();
   }
 
   static async isFilled(user_id: string){
@@ -195,6 +189,8 @@ export class QuestionService {
       }
     }
 
+    invalidateFormCache();
+
     return {
       ...validateData,
       old_question: findQuestion.question,
@@ -248,6 +244,8 @@ export class QuestionService {
         },
       },
     });
+
+    invalidateFormCache();
 
     return {
       question: findQuestion.question,

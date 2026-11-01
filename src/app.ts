@@ -1,6 +1,6 @@
 import express, { Express } from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
+import compression from "compression";
 import dotenv from "dotenv";
 import cron from "node-cron";
 import path from "path";
@@ -18,10 +18,11 @@ const app: Express = express();
 const whatsapp = clientWhatsapp.initialize()
 
 app.use(cors());
+app.use(compression()); // gzip response, payload JSON turun 70-90%
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(loggerMiddleware); // Middleware morgan but custom
 app.use(express.static("public"));
-app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.use("/public", express.static(path.join(__dirname, "../public")));

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -31,6 +32,11 @@ model User {
   created_at               DateTime                 @default(now())
   deleted_at               DateTime?
 
+  @@index([deleted_at])
+  @@index([company_id])
+  @@index([department_id])
+  @@index([job_position_id])
+  @@index([employment_status_id])
   @@map("users")
 }
 
@@ -119,6 +125,11 @@ model ResponseUser {
   question_answer             QuestionAnswer         @relation(fields: [question_answer_id], references: [question_answer_id])
   created_at                  DateTime               @default(now())
 
+  @@index([created_at])
+  @@index([user_id])
+  @@index([question_id])
+  @@index([question_answer_id])
+  @@index([attendance_health_result_id])
   @@map("response_user")
 }
 
@@ -138,6 +149,8 @@ model AttendanceHealthResult {
   response_user               ResponseUser[]
   created_at                  DateTime                         @default(now())
 
+  @@index([created_at])
+  @@index([user_id])
   @@map("attendance_health_results")
 }
 

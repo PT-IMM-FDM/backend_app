@@ -28,18 +28,28 @@ const resultEnumMapping: { [key in ResultEnum]: ResultEnum } = {
   FIT_FOLLOW_UP: "FIT_FOLLOW_UP",
   UNFIT: "UNFIT",
 };
-let adminDefault: { user_id: string } | null;
+const ADMIN_TTL_MS = 300_000;
+// "admin default" (phone_number 00000, akun sistem) di-exclude dari laporan.
+// Di-cache 5 menit. Dulu ini variable module-level yang diisi di sebagian
+// method saja: race antar request dan null saat cold start.
+let adminDefaultCache: { id: string; expires: number } | null = null;
+
+const getAdminDefaultId = async (): Promise<string> => {
+  if (adminDefaultCache && adminDefaultCache.expires > Date.now()) {
+    return adminDefaultCache.id;
+  }
+  const admin = await prisma.user.findFirst({
+    where: { phone_number: "00000" },
+    select: { user_id: true },
+  });
+  const id = admin?.user_id ?? "";
+  adminDefaultCache = { id, expires: Date.now() + ADMIN_TTL_MS };
+  return id;
+};
 
 export class FdmService {
   static async getFDM(data: GetFDMRequest): Promise<GetFDMResponse> {
-    let adminDefault = await prisma.user.findFirst({
-      where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
-    });
+    const adminDefaultId = await getAdminDefaultId();
 
     const resultValue = data.result
       ? resultEnumMapping[data.result as ResultKey]
@@ -69,11 +79,10 @@ export class FdmService {
       result: resultValue,
       user: {
         full_name: {
-          notIn: [adminDefault?.user_id ?? ""],
           contains: validateData.name,
           mode: Prisma.QueryMode.insensitive,
         },
-        user_id: { notIn: [adminDefault?.user_id ?? ""] },
+        user_id: { not: adminDefaultId },
         job_position_id: { in: validateData.job_position_id },
         department_id: isViewer
           ? adminRole.department_id
@@ -87,52 +96,30 @@ export class FdmService {
       attendance_health_result_id: validateData.attendance_health_result_id,
     };
 
-    const page = data.page;
     const pageSize = 100;
-
-    if (data.page) {
-      const fdm = await prisma.attendanceHealthResult.findMany({
-        where: whereClause,
-        include: {
-          user: {
-            select: {
-              full_name: true,
-              job_position: { select: { name: true } },
-              department: { select: { name: true } },
-              company: { select: { name: true } },
-              employment_status: { select: { name: true } },
-            },
+    const fdm = await prisma.attendanceHealthResult.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            full_name: true,
+            job_position: { select: { name: true } },
+            department: { select: { name: true } },
+            company: { select: { name: true } },
+            employment_status: { select: { name: true } },
           },
-          attachment_health_file: true,
         },
-        orderBy: { created_at: "desc" },
-        skip: (page! - 1) * pageSize,
-        take: pageSize,
-      });
+        attachment_health_file: true,
+      },
+      orderBy: { created_at: "desc" },
+      // Tanpa page: frontend Table.jsx masih pakai mode search tanpa page
+      // (memakai data.length), jadi full-list dipertahankan.
+      ...(data.page
+        ? { skip: (data.page - 1) * pageSize, take: pageSize }
+        : {}),
+    });
 
-      return fdm;
-    } else {
-      const fdm = await prisma.attendanceHealthResult.findMany({
-        where: whereClause,
-        include: {
-          user: {
-            select: {
-              full_name: true,
-              job_position: { select: { name: true } },
-              department: { select: { name: true } },
-              company: { select: { name: true } },
-              employment_status: { select: { name: true } },
-            },
-          },
-          attachment_health_file: true,
-        },
-        orderBy: {
-          created_at: "desc",
-        },
-      });
-
-      return fdm;
-    }
+    return fdm;
   }
 
   static async getMyFDM(data: GetMyFDMRequest): Promise<GetMyFDMResponse> {
@@ -197,14 +184,7 @@ export class FdmService {
   static async countResult(data: GetFDMCountResultRequest) {
     const validateData = Validation.validate(FDMValidation.COUNT_RESULT, data);
 
-    adminDefault = await prisma.user.findFirst({
-      where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
-    });
+    const adminDefaultId = await getAdminDefaultId();
 
     const admin = await prisma.user.findUnique({
       where: {
@@ -233,7 +213,7 @@ export class FdmService {
         : validateData.department_id;
 
     const user_where_clause = {
-      user_id: { notIn: [adminDefault?.user_id ?? ""] },
+      user_id: { not: adminDefaultId },
       job_position_id: { in: jobPositionIds },
       department_id: { in: departmentIds },
       company_id: { in: companyIds },
@@ -311,7 +291,7 @@ export class FdmService {
           lte: endOfToday(),
         },
         user: {
-          user_id: { notIn: [adminDefault?.user_id ?? ""] },
+          user_id: { not: await getAdminDefaultId() },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
@@ -328,14 +308,7 @@ export class FdmService {
       FDMValidation.WHO_FILLED_TODAY,
       data
     );
-    const adminDefault = await prisma.user.findFirst({
-      where: {
-        phone_number: "00000",
-      },
-      select: {
-        user_id: true,
-      },
-    });
+    const adminDefaultId = await getAdminDefaultId();
 
     const admin = await prisma.user.findUnique({
       where: {
@@ -368,38 +341,26 @@ export class FdmService {
         ? [admin.department.department_id]
         : validateData.department_id;
 
-    const usersFilledToday = await prisma.attendanceHealthResult.findMany({
-      where: {
-        created_at: {
-          gte: startOfToday(),
-          lte: endOfToday(),
-        },
-        user: {
-          job_position_id: { in: jobPositionIds },
-          department_id: { in: departmentIds },
-          company_id: { in: companyIds },
-          employment_status_id: { in: employmentStatusIds },
-          deleted_at: null,
-        },
-      },
-      select: {
-        user_id: true,
-      },
-    });
-
-    const userIdsFilledToday = usersFilledToday.map((user) => user.user_id);
-
+    // Anti-join: satu query. Filter user yang belum punya AttendanceHealthResult
+    // hari ini. Dulu: 2 query (ambil yang filled, lalu notIn list) yang
+    // tidak skala saat list filled membesar.
     const usersNotFilledToday = await prisma.user.findMany({
       where: {
-        user_id: {
-          notIn: userIdsFilledToday,
-          not: adminDefault?.user_id,
-        },
+        user_id: { not: adminDefaultId },
         job_position_id: { in: jobPositionIds },
         department_id: { in: departmentIds },
         company_id: { in: companyIds },
         employment_status_id: { in: employmentStatusIds },
         deleted_at: null,
+        // user belum isi FDM hari ini
+        Attendance_health_result: {
+          none: {
+            created_at: {
+              gte: startOfToday(),
+              lte: endOfToday(),
+            },
+          },
+        },
       },
       select: {
         user_id: true,
@@ -547,7 +508,7 @@ export class FdmService {
           lte: endOfToday(),
         },
         user: {
-          user_id: { notIn: [adminDefault?.user_id ?? ""] },
+          user_id: { not: await getAdminDefaultId() },
           job_position_id: { in: jobPositionIds },
           department_id: { in: departmentIds },
           company_id: { in: companyIds },
