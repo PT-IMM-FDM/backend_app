@@ -1,0 +1,68 @@
+name: Deploy backend-fdm
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-backend-fdm
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Build
+        run: npx tsc
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p artifact
+          cp -r build artifact/build
+          cp package.json package-lock.json artifact/
+          cp -r prisma artifact/prisma
+          tar -czf artifact.tar.gz -C artifact .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: artifact.tar.gz
+          retention-days: 3
+
+      - name: Deploy to VPS
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          scp -P ${{ secrets.PORT }} -i ~/.ssh/deploy_key artifact.tar.gz ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/tmp/backend-fdm-artifact.tar.gz
+          ssh -p ${{ secrets.PORT }} -i ~/.ssh/deploy_key ${{ secrets.USERNAME }}@${{ secrets.HOST }} '
+            set -e
+            APP=/home/deploy/var/www/fdm/backend_app
+            cd "$APP"
+            pm2 stop backend-fdm || true
+            tar -xzf /tmp/backend-fdm-artifact.tar.gz -C "$APP"
+            npm ci --omit=dev
+            npx prisma generate
+            npx prisma migrate deploy
+            pm2 restart backend-fdm --update-env
+            rm /tmp/backend-fdm-artifact.tar.gz
+          '

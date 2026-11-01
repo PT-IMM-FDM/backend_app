@@ -15,7 +15,10 @@ import { fdmRoute } from "./features/fitDailyMonitoring";
 
 dotenv.config();
 const app: Express = express();
-const whatsapp = clientWhatsapp.initialize()
+// WA gadget hanya nyala kalau WHATSAPP_ENABLED=true di .env (default mati; server prod set false)
+if (process.env.WHATSAPP_ENABLED === "true") {
+  clientWhatsapp.initialize();
+}
 
 app.use(cors());
 app.use(compression()); // gzip response, payload JSON turun 70-90%
